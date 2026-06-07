@@ -334,11 +334,12 @@ function load(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){ const s = JSON.parse(raw); return migrate(s); }
   }catch(e){}
-  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[] };
+  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[], lastReps:{} };
 }
 function migrate(s){
   s.weight = s.weight || 90;
   s.logs = s.logs || [];
+  s.lastReps = s.lastReps || {};
   let list = Array.isArray(s.exercises) ? s.exercises.slice() : [];
   // ensure the built-in exercises always exist (backfill any missing fields)
   DEFAULT_EXERCISES.forEach(def=>{
@@ -423,13 +424,19 @@ function updateActiveSlide(){
     const dist = Math.abs(sc - center);
     if(dist < bestDist){ bestDist = dist; best = i; }
   });
-  if(best !== selectedIdx){ selectedIdx = best; buzz(6); }
+  const changed = best !== selectedIdx;
+  if(changed){ selectedIdx = best; buzz(6); }
   $$(".slide").forEach((s,i)=>s.classList.toggle("active", i===selectedIdx));
   $$(".dot").forEach((d,i)=>d.classList.toggle("active", i===selectedIdx));
   const ex = state.exercises[selectedIdx];
   $("#repLbl").textContent = ex.perArm ? "Opakovaní na každú ruku" : "Počet opakovaní";
   $("#repUnit").textContent = ex.perArm ? "× / ruka" : "×";
-  updateKcal();
+  if(changed){
+    // prefill ruler with the reps from the last logged set of this exercise
+    setRulerValue(state.lastReps[ex.id] || 10, true);
+  } else {
+    updateKcal();
+  }
 }
 let scrollT;
 $("#carousel").addEventListener("scroll",()=>{
@@ -532,6 +539,7 @@ $("#saveBtn").addEventListener("click",()=>{
     ts: new Date().toISOString()
   };
   state.logs.push(entry);
+  state.lastReps[ex.id] = count; // remember reps for next time on this exercise
   save();
   buzz([10,40,10]);
   toast("Zapísané! +"+fmt(entry.kcal)+" kcal 🔥");
@@ -728,8 +736,9 @@ $("#resetBtn").addEventListener("click",()=>{
 /* ---------------- Init ---------------- */
 renderCarousel();
 buildRuler();
-window.addEventListener("load",()=>{ setRulerValue(10,false); });
-setRulerValue(10,false);
+const startReps = state.lastReps[state.exercises[selectedIdx].id] || 10;
+window.addEventListener("load",()=>{ setRulerValue(startReps,false); });
+setRulerValue(startReps,false);
 updateTodayPill();
 window.addEventListener("resize",()=>setRulerValue(count,false));
 </script>
