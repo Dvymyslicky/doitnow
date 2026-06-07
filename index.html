@@ -52,7 +52,11 @@
   /* Views */
   .view{display:none;animation:fade .25s ease}
   .view.active{display:block}
-  #view-stats, #view-cal, #view-set, #view-friends{padding-top:calc(env(safe-area-inset-top) + 16px)}
+  #view-profile, #view-set, #view-friends{padding-top:calc(env(safe-area-inset-top) + 16px)}
+  .profile-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .profile-head .ph-title{font-size:22px;font-weight:800}
+  .icon-btn{width:40px;height:40px;border-radius:12px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .icon-btn:active{background:var(--accent);color:#fff}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
@@ -226,9 +230,25 @@
     <div class="deck" id="deck"></div>
   </section>
 
-  <!-- STATS -->
-  <section class="view" id="view-stats">
-    <div class="section-title">Obdobie</div>
+  <!-- PROFILE (osobné dáta + štatistiky + kalendár) -->
+  <section class="view" id="view-profile">
+    <div class="profile-head">
+      <div class="ph-title">Profil</div>
+      <button class="icon-btn" id="openSettings" aria-label="Nastavenia">⚙️</button>
+    </div>
+
+    <div class="card profile-strip">
+      <div class="ps-name" id="pfName">Tvoj profil</div>
+      <div class="ps-stats">
+        <span class="ps-flame">🔥 <b id="pfStreak">0</b></span>
+        <span class="ps-badge">🥇 <b id="pfG">0</b></span>
+        <span class="ps-badge">🥈 <b id="pfS">0</b></span>
+        <span class="ps-badge">🥉 <b id="pfB">0</b></span>
+      </div>
+    </div>
+    <div id="pfTotals" style="text-align:center;font-size:12.5px;color:var(--muted);margin:-6px 2px 16px"></div>
+
+    <div class="section-title">Štatistiky</div>
     <div class="range-chips" id="rangeChips">
       <button class="rchip active" data-r="today">Dnes</button>
       <button class="rchip" data-r="7">7 dní</button>
@@ -248,6 +268,24 @@
     </div>
     <div class="section-title">Podľa cviku</div>
     <div id="statsByEx"></div>
+
+    <div class="section-title" style="margin-top:20px">Kalendár</div>
+    <div class="card">
+      <div class="cal-head">
+        <button id="prevM">‹</button>
+        <div class="mlabel" id="mLabel"></div>
+        <button id="nextM">›</button>
+      </div>
+      <div class="cal-grid" id="calDow"></div>
+      <div class="cal-grid" id="calGrid" style="margin-top:5px"></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="big accent" id="mKcal">0</div><div class="lbl">kcal / mesiac</div></div>
+      <div class="stat"><div class="big green" id="mDays">0</div><div class="lbl">aktívnych dní</div></div>
+    </div>
+    <div class="section-title" id="dayTitle">Detail dňa</div>
+    <div class="dt" id="daySub" style="margin:-4px 2px 10px"></div>
+    <div id="dayList"></div>
   </section>
 
   <!-- FRIENDS -->
@@ -283,28 +321,13 @@
     </div>
   </section>
 
-  <!-- CALENDAR -->
-  <section class="view" id="view-cal">
-    <div class="card">
-      <div class="cal-head">
-        <button id="prevM">‹</button>
-        <div class="mlabel" id="mLabel"></div>
-        <button id="nextM">›</button>
-      </div>
-      <div class="cal-grid" id="calDow"></div>
-      <div class="cal-grid" id="calGrid" style="margin-top:5px"></div>
-    </div>
-    <div class="stat-row">
-      <div class="stat"><div class="big accent" id="mKcal">0</div><div class="lbl">kcal / mesiac</div></div>
-      <div class="stat"><div class="big green" id="mDays">0</div><div class="lbl">aktívnych dní</div></div>
-    </div>
-    <div class="section-title" id="dayTitle">Detail dňa</div>
-    <div class="dt" id="daySub" style="margin:-4px 2px 10px"></div>
-    <div id="dayList"></div>
-  </section>
-
   <!-- SETTINGS -->
   <section class="view" id="view-set">
+    <div class="profile-head">
+      <button class="icon-btn" id="backFromSettings" aria-label="Späť">‹</button>
+      <div class="ph-title">Nastavenia</div>
+      <span style="width:40px"></span>
+    </div>
     <div class="card">
       <div class="section-title">Profil</div>
       <div class="field">
@@ -393,10 +416,8 @@
 
 <nav class="tabbar">
   <button class="tab" data-view="friends"><span class="ico">👥</span>Priatelia</button>
-  <button class="tab" data-view="stats"><span class="ico">📊</span>Štaty</button>
   <button class="tab center active" data-view="add"><span class="ico">➕</span>Pridať</button>
-  <button class="tab" data-view="cal"><span class="ico">📅</span>Kalendár</button>
-  <button class="tab" data-view="set"><span class="ico">⚙️</span>Viac</button>
+  <button class="tab" data-view="profile"><span class="ico">👤</span>Profil</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -412,7 +433,7 @@ const DEFAULT_EXERCISES = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.1";
+const APP_VERSION = "2026-06-07.2";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -610,23 +631,22 @@ async function fetchFriends(){
 function refreshAll(){
   renderDeck();
   renderSettings();
-  if($("#view-stats") && $("#view-stats").classList.contains("active")) renderStats();
-  if($("#view-cal") && $("#view-cal").classList.contains("active")) renderCalendar();
+  if($("#view-profile") && $("#view-profile").classList.contains("active")) renderProfile();
+  if($("#view-friends") && $("#view-friends").classList.contains("active")) renderFriends();
   updateTodayPill();
 }
 
 /* ---------------- Navigation ---------------- */
-$$(".tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    const v = tab.dataset.view;
-    $$(".tab").forEach(t=>t.classList.toggle("active", t===tab));
-    $$(".view").forEach(s=>s.classList.toggle("active", s.id==="view-"+v));
-    if(v==="friends") renderFriends();
-    if(v==="stats") renderStats();
-    if(v==="cal") renderCalendar();
-    if(v==="set") renderSettings();
-  });
-});
+function showView(name, tabName){
+  $$(".view").forEach(s=>s.classList.toggle("active", s.id==="view-"+name));
+  $$(".tab").forEach(t=>t.classList.toggle("active", t.dataset.view===(tabName||name)));
+  if(name==="friends") renderFriends();
+  if(name==="profile") renderProfile();
+  if(name==="set") renderSettings();
+}
+$$(".tab").forEach(tab=>{ tab.addEventListener("click",()=>showView(tab.dataset.view)); });
+$("#openSettings").addEventListener("click",()=>showView("set","profile"));
+$("#backFromSettings").addEventListener("click",()=>showView("profile"));
 
 /* ---------------- ADD: exercise deck + numbers ruler ---------------- */
 let deckCtrls = [];
@@ -784,6 +804,21 @@ function renderStats(){
 $$("#rangeChips .rchip").forEach(c=>{
   c.addEventListener("click",()=>{ curRange = c.dataset.r; renderStats(); });
 });
+
+/* ---------------- PROFILE view (personal + stats + calendar) ---------------- */
+function renderProfile(){
+  $("#pfName").textContent = (state.profile && state.profile.name) ? state.profile.name : "Tvoj profil";
+  $("#pfStreak").textContent = computeStreak();
+  const mc = medalCounts();
+  [["pfG",mc.g],["pfS",mc.s],["pfB",mc.b]].forEach(([id,n])=>{
+    const b = $("#"+id); b.textContent = n; b.parentElement.style.display = n>0 ? "" : "none";
+  });
+  const totalK = state.logs.reduce((s,l)=>s+l.kcal,0);
+  const days = new Set(state.logs.map(l=>l.ts.slice(0,10))).size;
+  $("#pfTotals").textContent = `${state.logs.length} setov · ${days} aktívnych dní · ${fmt(totalK)} kcal celkovo`;
+  renderStats();
+  renderCalendar();
+}
 
 /* ---------------- FRIENDS view ---------------- */
 let frMode = "week";
