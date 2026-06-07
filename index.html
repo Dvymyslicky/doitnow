@@ -70,7 +70,7 @@
   }
   .deck::-webkit-scrollbar{display:none}
   .page{
-    height:100%;scroll-snap-align:start;
+    height:100%;scroll-snap-align:start;scroll-snap-stop:always;
     display:flex;flex-direction:column;align-items:center;
     padding:calc(env(safe-area-inset-top) + 14px) 24px 22px;text-align:center;
   }
@@ -569,7 +569,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.15";
+const APP_VERSION = "2026-06-07.16";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -902,7 +902,10 @@ function makeRuler(ruler, valEl, ex, lkEl){
 
   let dragging=false, startX=0, startVal=value;
   const px = e => e.touches ? e.touches[0].clientX : e.clientX;
-  function down(e){ dragging=true; startX=px(e); startVal=value; valEl.style.transition="none"; }
+  const deckEl = () => document.getElementById("deck");
+  function freezeDeck(){ const d=deckEl(); if(d) d.style.overflowY="hidden"; }  // stop any momentum scroll instantly
+  function unfreezeDeck(){ const d=deckEl(); if(d) d.style.overflowY="auto"; }
+  function down(e){ dragging=true; startX=px(e); startVal=value; valEl.style.transition="none"; freezeDeck(); }
   function move(e){
     if(!dragging) return;
     e.preventDefault();
@@ -914,7 +917,7 @@ function makeRuler(ruler, valEl, ex, lkEl){
     valEl.style.transform = "translateX(" + rem + "px)";
     if(v !== value){ value=v; valEl.textContent=v; lkEl.textContent=fmt(kcalFor(ex,v)); buzz(7); }
   }
-  function up(){ if(!dragging) return; dragging=false; valEl.style.transition="transform .18s cubic-bezier(.2,1,.3,1)"; valEl.style.transform="translateX(0)"; }
+  function up(){ unfreezeDeck(); if(!dragging) return; dragging=false; valEl.style.transition="transform .18s cubic-bezier(.2,1,.3,1)"; valEl.style.transform="translateX(0)"; }
 
   ruler.addEventListener("mousedown",down);
   window.addEventListener("mousemove",move);
@@ -922,6 +925,7 @@ function makeRuler(ruler, valEl, ex, lkEl){
   ruler.addEventListener("touchstart",down,{passive:false});
   ruler.addEventListener("touchmove",move,{passive:false});
   ruler.addEventListener("touchend",up);
+  ruler.addEventListener("touchcancel",up);
   ruler.addEventListener("wheel",e=>{ e.preventDefault(); setVal(value+(e.deltaY>0?-1:1)); },{passive:false});
 
   return { value:()=>value, step:d=>setVal(value+d), reposition:()=>{} };
