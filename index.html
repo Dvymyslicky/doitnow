@@ -67,6 +67,7 @@
   .deck{
     flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;
     margin:0 -16px;scrollbar-width:none;-ms-overflow-style:none;
+    -webkit-overflow-scrolling:auto;overscroll-behavior:contain;
   }
   .deck::-webkit-scrollbar{display:none}
   .page{
@@ -329,15 +330,6 @@
       </div>
     </div>
     <div id="friendsMain" style="display:none">
-      <div class="card profile-strip">
-        <div class="ps-name" id="frMe">—</div>
-        <div class="ps-stats">
-          <span class="ps-flame">🔥 <b id="frStreak">0</b></span>
-          <span class="ps-badge">🥇 <b id="frG">0</b></span>
-          <span class="ps-badge">🥈 <b id="frS">0</b></span>
-          <span class="ps-badge">🥉 <b id="frB">0</b></span>
-        </div>
-      </div>
       <div class="range-chips" id="frTabs">
         <button class="rchip active" data-fr="week">Tento týždeň</button>
         <button class="rchip" data-fr="total">Celkovo</button>
@@ -573,7 +565,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.18";
+const APP_VERSION = "2026-06-07.19";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -862,8 +854,10 @@ function renderDeck(){
       : makeRuler(page.querySelector(".numruler"), page.querySelector(".numval"), ex, page.querySelector(".lk"));
     deckCtrls.push(ctrl);
     if(!ex.timed){
-      page.querySelector(".sdec").addEventListener("click",()=>ctrl.step(-1));
-      page.querySelector(".sinc").addEventListener("click",()=>ctrl.step(1));
+      // pointerdown (not click) so it works even on the tap that stops scroll momentum
+      const tapStep = (el,d)=>{ if(!el) return; el.addEventListener("pointerdown",e=>{ e.preventDefault(); ctrl.step(d); }); };
+      tapStep(page.querySelector(".sdec"), -1);
+      tapStep(page.querySelector(".sinc"), 1);
     }
 
     page.querySelector(".add").addEventListener("click",()=>{
@@ -1044,9 +1038,6 @@ async function renderFriends(){
     return;
   }
   setup.style.display = "none"; main.style.display = "";
-  $("#frMe").textContent = state.profile.name;
-  $("#frStreak").textContent = computeStreak();
-  updateMyMedals();
   const lb = $("#leaderboard");
   lb.innerHTML = `<div class="empty">Načítavam…</div>`;
   try{
@@ -1082,8 +1073,8 @@ function renderLeaderboard(rows){
 }
 function updateMyMedals(){
   const mc = medalCounts();
-  [["frG",mc.g],["frS",mc.s],["frB",mc.b]].forEach(([id,n])=>{
-    const b = $("#"+id); b.textContent = n;
+  [["pfG",mc.g],["pfS",mc.s],["pfB",mc.b]].forEach(([id,n])=>{
+    const b = $("#"+id); if(!b) return; b.textContent = n;
     b.parentElement.style.display = n>0 ? "" : "none"; // hide medal when 0
   });
 }
