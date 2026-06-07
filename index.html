@@ -429,15 +429,11 @@
 <script>
 "use strict";
 /* ---------------- Config / defaults ---------------- */
-const DEFAULT_EXERCISES = [
-  { id:"diamond",  name:"Diamond push ups", emoji:"💎", met:8.0, secPerRep:3, perArm:false },
-  { id:"pike",     name:"Pike push ups",    emoji:"🔺", met:8.0, secPerRep:3, perArm:false },
-  { id:"biceps",   name:"Biceps s gumou",   emoji:"💪", met:4.0, secPerRep:3, perArm:true  },
-  { id:"triceps",  name:"Triceps s gumou",  emoji:"🦾", met:4.0, secPerRep:3, perArm:false },
-];
+// No preset exercises — every user creates their own.
+const DEFAULT_EXERCISES = [];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.6";
+const APP_VERSION = "2026-06-07.7";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -446,12 +442,12 @@ function load(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){ const s = JSON.parse(raw); return migrate(s); }
   }catch(e){}
-  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[], lastReps:{}, updatedAt:0,
+  return { weight:null, exercises:[], logs:[], lastReps:{}, updatedAt:0,
            userId:newId(), profile:{ name:"", group:"", wins:{} } };
 }
 function newId(){ return "u-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
 function migrate(s){
-  s.weight = s.weight || 90;
+  s.weight = (typeof s.weight === "number" && s.weight>0) ? s.weight : null;
   s.logs = s.logs || [];
   s.lastReps = s.lastReps || {};
   s.updatedAt = s.updatedAt || 0;
@@ -504,9 +500,10 @@ function buzz(ms){
 }
 
 function kcalFor(ex, reps){
+  const w = state.weight || 0; // 0 until the user sets their weight
   const totalReps = ex.perArm ? reps*2 : reps;
   const hours = (totalReps * ex.secPerRep) / 3600;
-  return ex.met * state.weight * hours;
+  return ex.met * w * hours;
 }
 function fmt(n){ return Math.round(n); }
 
@@ -660,7 +657,14 @@ function renderDeck(){
   deck.innerHTML = "";
   deckCtrls = [];
   if(!state.exercises.length){
-    deck.innerHTML = `<div class="page"><div class="page-emoji">🏋️</div><div class="page-title">Žiadne cviky</div><div class="page-sub">Pridaj si cvik v Nastaveniach → Cviky</div></div>`;
+    deck.innerHTML = `<div class="page">
+      <div class="page-emoji">🏋️</div>
+      <div class="page-title">Začni vytvorením cviku</div>
+      <div class="page-sub">Zatiaľ nemáš žiadne cviky. Vytvor si vlastné a môžeš začať trackovať.</div>
+      <button class="btn" id="emptyAddBtn" style="max-width:320px;margin-top:26px">➕ Vytvoriť prvý cvik</button>
+    </div>`;
+    const b = $("#emptyAddBtn");
+    if(b) b.addEventListener("click",()=>{ showView("set","profile"); openExEditor(null); });
     return;
   }
   const total = state.exercises.length;
@@ -985,7 +989,7 @@ function renderDayDetail(key){
 /* ---------------- SETTINGS view ---------------- */
 function renderSettings(){
   $("#nameInput").value = (state.profile && state.profile.name) || "";
-  $("#weightInput").value = state.weight;
+  $("#weightInput").value = state.weight || "";
   $("#syncUrl").value = sync.url || "";
   $("#syncKey").value = sync.key || "";
   $("#syncCode").value = sync.code || "";
