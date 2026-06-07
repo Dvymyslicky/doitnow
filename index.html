@@ -84,6 +84,11 @@
   .numruler{position:relative;flex:1;min-width:0;height:260px;overflow:hidden;touch-action:none;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
   .numruler:active{cursor:grabbing}
   .numval{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);font-size:250px;line-height:1;will-change:transform;white-space:nowrap}
+  /* stopwatch (timed exercises) */
+  .timer{display:flex;align-items:center;justify-content:center;width:100%;min-height:200px}
+  .timer-display{font-size:104px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);line-height:1}
+  .timer-toggle{max-width:380px;margin:0 auto}
+  .btn.stop{background:linear-gradient(135deg,#ff5b5b,#ff8a3d);color:#2a0c05}
 
   .kcal-live{text-align:center;margin:auto 0 12px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
@@ -567,7 +572,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.8";
+const APP_VERSION = "2026-06-07.9";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -826,40 +831,59 @@ function renderDeck(){
   state.exercises.forEach((ex,i)=>{
     const page = document.createElement("div");
     page.className = "page";
+    const subText = ex.timed ? (ex.perArm ? "stopky · na stranu" : "stopky")
+                             : (ex.perArm ? "počet na každú ruku" : "počet opakovaní");
+    const control = ex.timed
+      ? `<div class="numwrap"><div class="timer"><div class="timer-display">00:00</div></div></div>
+         <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2" : ""}</div>
+         <button class="btn ghost timer-toggle">▶ Štart</button>
+         <button class="btn add" style="margin-top:10px">Pridať set 💪</button>`
+      : `<div class="numwrap"><div class="numruler"><div class="numval">10</div></div></div>
+         <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2 ruky" : ""}</div>
+         <button class="btn add">Pridať set 💪</button>`;
     page.innerHTML = `
       <div class="page-eyebrow">${i+1} / ${total}</div>
       <div class="page-emoji">${ex.emoji}</div>
       <div class="page-title">${ex.name}</div>
-      <div class="page-sub">${ex.timed ? (ex.perArm ? "trvanie na stranu (sek)" : "trvanie (sekundy)") : (ex.perArm ? "počet na každú ruku" : "počet opakovaní")}</div>
-      <div class="numwrap">
-        <div class="numruler"><div class="numval">10</div></div>
-      </div>
-      <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2 ruky" : ""}</div>
-      <button class="btn add">Pridať set 💪</button>`;
+      <div class="page-sub">${subText}</div>
+      ${control}`;
     deck.appendChild(page);
 
-    const ctrl = makeRuler(
-      page.querySelector(".numruler"),
-      page.querySelector(".numval"),
-      ex,
-      page.querySelector(".lk")
-    );
+    const ctrl = ex.timed
+      ? makeTimer(page.querySelector(".timer-display"), page.querySelector(".timer-toggle"), page.querySelector(".lk"), ex)
+      : makeRuler(page.querySelector(".numruler"), page.querySelector(".numval"), ex, page.querySelector(".lk"));
     deckCtrls.push(ctrl);
 
     page.querySelector(".add").addEventListener("click",()=>{
-      const reps = ctrl.value();
+      const val = ctrl.value();
+      if(ex.timed && val<=0){ toast("Najprv spusti stopky ▶"); return; }
       const entry = {
         id: Date.now()+"-"+Math.random().toString(36).slice(2,6),
-        exId: ex.id, reps, kcal: kcalFor(ex, reps), ts: new Date().toISOString()
+        exId: ex.id, reps: val, kcal: kcalFor(ex, val), ts: new Date().toISOString()
       };
       state.logs.push(entry);
-      state.lastReps[ex.id] = reps; // remember for next time
+      state.lastReps[ex.id] = val; // remember for next time
       save();
       buzz([10,40,10]);
-      showAddFx(ex, reps, entry.kcal);
+      showAddFx(ex, val, entry.kcal);
       updateTodayPill();
+      if(ctrl.afterAdd) ctrl.afterAdd();
     });
   });
+}
+
+// Stopwatch control for timed exercises. value() = elapsed seconds.
+function makeTimer(displayEl, toggleBtn, lkEl, ex){
+  let running=false, startTs=0, acc=0, iv=null;
+  const cur = () => acc + (running ? (Date.now()-startTs)/1000 : 0);
+  const fmtT = s => { s=Math.floor(s); const m=Math.floor(s/60), ss=s%60; return (m<10?"0":"")+m+":"+(ss<10?"0":"")+ss; };
+  function refresh(){ const s=cur(); displayEl.textContent=fmtT(s); lkEl.textContent=fmt(kcalFor(ex, Math.round(s))); }
+  function start(){ running=true; startTs=Date.now(); toggleBtn.textContent="⏸ Stop"; toggleBtn.classList.add("stop"); iv=setInterval(refresh,200); buzz(8); }
+  function stop(){ if(!running) return; acc=cur(); running=false; clearInterval(iv); iv=null; toggleBtn.textContent=acc>0?"▶ Pokračovať":"▶ Štart"; toggleBtn.classList.remove("stop"); refresh(); buzz(8); }
+  function reset(){ running=false; clearInterval(iv); iv=null; acc=0; toggleBtn.textContent="▶ Štart"; toggleBtn.classList.remove("stop"); refresh(); }
+  toggleBtn.addEventListener("click",()=>{ running ? stop() : start(); });
+  refresh();
+  return { value:()=>Math.max(0,Math.round(cur())), afterAdd:reset, reposition:()=>{} };
 }
 
 // Single big number bound to one exercise. Drag to scrub smoothly.
