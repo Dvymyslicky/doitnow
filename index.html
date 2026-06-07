@@ -72,6 +72,8 @@
   .pickrow .nm{flex:1;font-weight:600;font-size:14.5px}
   .pickrow .tick{color:var(--muted);font-size:18px}
   .pickrow.sel .tick{color:var(--accent)}
+  .pickrow .drag{color:var(--muted);font-size:18px;cursor:grab;touch-action:none;user-select:none;padding:0 2px}
+  .pickrow.dragging{opacity:.9;border-color:var(--accent);box-shadow:0 10px 24px rgba(0,0,0,.45)}
   .deck{
     flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;
     margin:0 -16px;scrollbar-width:none;-ms-overflow-style:none;
@@ -607,7 +609,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.21";
+const APP_VERSION = "2026-06-07.22";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -1391,8 +1393,10 @@ function pickFromDb(e){
   if(dbPickTarget === "preset"){
     const id = "custom-"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
     state.exercises.push({ id, name:e.name, emoji:e.emoji, met:e.met, secPerRep:e.sec, perArm:!!e.perArm, timed:!!e.timed });
-    presetSel.push(id);
+    presetSelSet.add(id);
+    presetOrder.unshift(id);   // new exercise to the top, selected
     save();
+    renderSettings();          // show it immediately in the Cviky list too
     $("#dbPicker").classList.remove("show");
     renderPresetPick();
     return;
@@ -1472,33 +1476,54 @@ $("#syncPushBtn").addEventListener("click",()=>{
 });
 
 /* ---------------- Presets (trainings) ---------------- */
-let editingPreset = null;   // preset id being edited
-let presetSel = [];         // working list of selected exercise ids
+let editingPreset = null;     // preset id being edited
+let presetOrder = [];         // ALL exercise ids in current display order
+let presetSelSet = new Set(); // which of them are selected
 function openPresetEditor(id){
   editingPreset = id || null;
   const p = id ? state.presets.find(x=>x.id===id) : null;
   $("#presetTitle").textContent = p ? "Upraviť tréning" : "Nový tréning";
   $("#presetName").value = p ? p.name : "";
-  presetSel = p ? p.exIds.slice() : [];
+  const allIds = state.exercises.filter(e=>!e.deleted).map(e=>e.id);
+  const sel = (p ? p.exIds : []).filter(id=>allIds.includes(id));
+  presetSelSet = new Set(sel);
+  presetOrder = [...sel, ...allIds.filter(id=>!presetSelSet.has(id))]; // selected first, then rest
   $("#presetDelete").style.display = p ? "" : "none";
   renderPresetPick();
   $("#presetEditor").classList.add("show");
 }
 function renderPresetPick(){
   const box = $("#presetPick"); box.innerHTML = "";
-  const list = state.exercises.filter(e=>!e.deleted);
-  if(!list.length){ box.innerHTML = `<div class="empty" style="padding:10px">Nemáš žiadne cviky. Pridaj cez „📚 Pridať z databázy".</div>`; }
-  list.forEach(ex=>{
-    const on = presetSel.includes(ex.id);
-    const row = document.createElement("div"); row.className = "pickrow" + (on?" sel":"");
-    row.innerHTML = `<span class="emoji">${ex.emoji}</span><div class="nm">${ex.name}</div><span class="tick">${on?"✓":"+"}</span>`;
-    row.addEventListener("click",()=>{
-      const i = presetSel.indexOf(ex.id);
-      if(i>=0) presetSel.splice(i,1); else presetSel.push(ex.id);
+  if(!presetOrder.length){ box.innerHTML = `<div class="empty" style="padding:10px">Nemáš žiadne cviky. Pridaj cez „📚 Pridať z databázy".</div>`; return; }
+  presetOrder.forEach(id=>{
+    const ex = exById(id); if(!ex) return;
+    const on = presetSelSet.has(id);
+    const row = document.createElement("div"); row.className = "pickrow" + (on?" sel":""); row.dataset.id = id;
+    row.innerHTML = `<span class="drag" title="Presunúť">⠿</span><span class="emoji">${ex.emoji}</span><div class="nm">${ex.name}</div><span class="tick">${on?"✓":"+"}</span>`;
+    row.addEventListener("click",(e)=>{ if(e.target.closest(".drag")) return;
+      if(presetSelSet.has(id)) presetSelSet.delete(id); else presetSelSet.add(id);
       renderPresetPick();
     });
+    row.querySelector(".drag").addEventListener("pointerdown",(e)=>startPDrag(e,row));
     box.appendChild(row);
   });
+}
+/* drag reorder inside the preset editor (all rows movable) */
+let _pdrag = null;
+function startPDrag(e,row){ e.preventDefault(); _pdrag=row; row.classList.add("dragging"); document.addEventListener("pointermove",onPDrag); document.addEventListener("pointerup",endPDrag,{once:true}); }
+function onPDrag(e){
+  if(!_pdrag) return;
+  const list = $("#presetPick");
+  const others = [...list.querySelectorAll(".pickrow:not(.dragging)")];
+  let after = null;
+  for(const r of others){ const b=r.getBoundingClientRect(); if(e.clientY < b.top + b.height/2){ after=r; break; } }
+  if(after) list.insertBefore(_pdrag, after); else list.appendChild(_pdrag);
+}
+function endPDrag(){
+  document.removeEventListener("pointermove",onPDrag);
+  if(!_pdrag) return;
+  _pdrag.classList.remove("dragging"); _pdrag=null;
+  presetOrder = [...$("#presetPick").querySelectorAll(".pickrow")].map(r=>r.dataset.id);
 }
 function closePresetEditor(){ $("#presetEditor").classList.remove("show"); editingPreset = null; }
 $("#addPresetBtn").addEventListener("click",()=>openPresetEditor(null));
@@ -1507,13 +1532,14 @@ $("#presetEditor").addEventListener("click",e=>{ if(e.target.id==="presetEditor"
 $("#presetFromDb").addEventListener("click",()=>{ dbPickTarget="preset"; openDbPicker(); });
 $("#presetSave").addEventListener("click",()=>{
   const name = $("#presetName").value.trim();
+  const exIds = presetOrder.filter(id=>presetSelSet.has(id)); // order from selected only
   if(!name){ toast("Zadaj názov tréningu"); return; }
-  if(!presetSel.length){ toast("Vyber aspoň jeden cvik"); return; }
+  if(!exIds.length){ toast("Vyber aspoň jeden cvik"); return; }
   if(editingPreset){
     const p = state.presets.find(x=>x.id===editingPreset);
-    if(p){ p.name=name; p.exIds=presetSel.slice(); }
+    if(p){ p.name=name; p.exIds=exIds; }
   } else {
-    state.presets.push({ id:"preset-"+Date.now().toString(36), name, exIds:presetSel.slice() });
+    state.presets.push({ id:"preset-"+Date.now().toString(36), name, exIds });
   }
   save(); closePresetEditor(); renderSettings(); renderDeck(); buzz([10,40,10]); toast("Tréning uložený ✅");
 });
