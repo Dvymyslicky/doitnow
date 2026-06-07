@@ -572,7 +572,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.10";
+const APP_VERSION = "2026-06-07.11";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -1158,7 +1158,7 @@ function renderDayDetail(key){
     item.querySelector(".del").addEventListener("click",()=>{
       if(confirm(`Zmazať tento set (${repTxt} o ${time})?`)){
         state.logs = state.logs.filter(x=>x.id!==l.id);
-        save(); renderCalendar();
+        save(); renderProfile(); // refresh stats counters + calendar together
       }
     });
     list.appendChild(item);
