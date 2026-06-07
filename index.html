@@ -52,54 +52,49 @@
   /* Views */
   .view{display:none;animation:fade .25s ease}
   .view.active{display:block}
+  #view-today, #view-cal, #view-set{padding-top:calc(env(safe-area-inset-top) + 16px)}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
   .section-title{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:4px 2px 10px}
 
-  /* ---------- Exercise carousel (fullscreen swipe) ---------- */
-  #view-add.active{display:flex;flex-direction:column;height:calc(100dvh - 150px)}
-  .carousel{
-    display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
-    padding:8px 16px;margin:0 -16px;flex:1;min-height:0;
-    scrollbar-width:none;-ms-overflow-style:none;
+  /* ---------- Exercise deck (vertical presentation pages) ---------- */
+  #view-add.active{display:flex;flex-direction:column;height:calc(100dvh - 88px)}
+  .deck{
+    flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;
+    margin:0 -16px;scrollbar-width:none;-ms-overflow-style:none;
   }
-  .carousel::-webkit-scrollbar{display:none}
-  .slide{
-    flex:0 0 86%;scroll-snap-align:center;
-    border-radius:28px;border:1.5px solid var(--line);
-    background:linear-gradient(160deg,var(--card2),var(--card));
-    padding:26px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;
-    transition:transform .3s ease, opacity .3s ease, border-color .3s ease, box-shadow .3s ease;
-    transform:scale(.92);opacity:.45;box-shadow:var(--shadow)
+  .deck::-webkit-scrollbar{display:none}
+  .page{
+    height:100%;scroll-snap-align:start;
+    display:flex;flex-direction:column;align-items:center;
+    padding:calc(env(safe-area-inset-top) + 14px) 24px 18px;text-align:center;
   }
-  .slide.active{transform:scale(1);opacity:1;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,0 12px 30px rgba(255,107,53,.18)}
-  .slide .emoji{font-size:88px;line-height:1}
-  .slide .name{font-weight:800;font-size:26px;line-height:1.15}
-  .slide .meta{font-size:13px;color:var(--muted)}
-  .slide .badge{font-size:12px;color:var(--accent2);background:rgba(255,177,66,.12);padding:4px 12px;border-radius:999px}
-  .slide .hint{font-size:11px;color:var(--muted);opacity:.6;margin-top:6px;letter-spacing:1px}
+  .page-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);opacity:.7}
+  .page-emoji{font-size:54px;line-height:1;margin-top:8px}
+  .page-title{font-size:30px;font-weight:800;line-height:1.1;margin-top:8px}
+  .page-sub{font-size:13px;color:var(--muted);margin-top:6px}
 
-  .dots{display:flex;justify-content:center;gap:7px;margin:10px 0 12px}
-  .dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.2s}
-  .dot.active{background:var(--accent);width:20px;border-radius:4px}
+  /* ---------- Numbers-only ruler (horizontal) ---------- */
+  .numwrap{flex:1;width:100%;display:flex;align-items:center;justify-content:center}
+  .numruler{position:relative;width:100%;height:130px;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
+  .numruler:active{cursor:grabbing}
+  .numruler-track{position:absolute;top:0;bottom:0;left:0;will-change:transform}
+  .numr{
+    position:absolute;top:50%;width:60px;text-align:center;white-space:nowrap;
+    transform:translateY(-50%);font-weight:800;font-variant-numeric:tabular-nums;
+    color:var(--txt);opacity:0;line-height:1;pointer-events:none;
+    transition:font-size .14s ease, opacity .14s ease, color .14s ease;
+  }
+  .numr.d3{font-size:26px;opacity:.06}
+  .numr.d2{font-size:34px;opacity:.12}
+  .numr.d1{font-size:46px;opacity:.22}
+  .numr.d0{font-size:92px;opacity:1;color:var(--accent2);z-index:5}
+  .numr.d0.pop{font-size:100px}
 
-  /* ---------- Reps wheel (vertical big numbers) ---------- */
-  .rep-label{text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:2px 0}
-  .wheel{position:relative;height:174px;margin:2px 0 4px;touch-action:none;user-select:none;overflow:hidden;cursor:grab}
-  .wheel:active{cursor:grabbing}
-  .wheel-band{position:absolute;left:60px;right:60px;top:50%;height:58px;transform:translateY(-50%);border-radius:16px;background:rgba(255,107,53,.10);border:1px solid rgba(255,107,53,.35);z-index:1;pointer-events:none}
-  .wheel-fade-t,.wheel-fade-b{position:absolute;left:0;right:0;height:58px;z-index:3;pointer-events:none}
-  .wheel-fade-t{top:0;background:linear-gradient(180deg,var(--card),transparent)}
-  .wheel-fade-b{bottom:0;background:linear-gradient(0deg,var(--card),transparent)}
-  .wheel-track{position:absolute;left:0;right:0;top:0;z-index:2;will-change:transform}
-  .wheel-num{height:58px;display:flex;align-items:center;justify-content:center;font-weight:800;font-variant-numeric:tabular-nums;font-size:22px;color:var(--muted);opacity:.45;transition:color .12s,opacity .12s,font-size .12s,transform .12s}
-  .wheel-num.near{opacity:.85;font-size:27px}
-  .wheel-num.sel{color:var(--accent2);opacity:1;font-size:44px;transform:scale(1.03)}
-  .wheel-num.sel.pop{transform:scale(1.12)}
-
-  .kcal-live{text-align:center;margin:6px 0 10px;font-size:14px;color:var(--muted)}
+  .kcal-live{text-align:center;margin:4px 0 12px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
+  .page .btn{max-width:380px}
 
   .btn{
     width:100%;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;
@@ -188,26 +183,9 @@
 </head>
 <body>
 <div class="app">
-  <header>
-    <h1>Do<span>It</span>Now</h1>
-    <div class="pill">🔥 dnes <b id="todayKcalPill">0</b> kcal</div>
-  </header>
-
   <!-- ADD -->
   <section class="view active" id="view-add">
-    <div class="carousel" id="carousel"></div>
-    <div class="dots" id="dots"></div>
-
-    <div class="rep-label" id="repLbl">Počet opakovaní</div>
-    <div class="wheel" id="wheel">
-      <div class="wheel-band"></div>
-      <div class="wheel-fade-t"></div>
-      <div class="wheel-fade-b"></div>
-      <div class="wheel-track" id="wheelTrack"></div>
-    </div>
-    <div class="kcal-live"><span id="repUnit">×</span> · ≈ <b id="liveKcal">0</b> kcal</div>
-
-    <button class="btn" id="saveBtn">Pridať set 💪</button>
+    <div class="deck" id="deck"></div>
   </section>
 
   <!-- TODAY -->
@@ -318,7 +296,7 @@ const DEFAULT_EXERCISES = [
   { id:"triceps",  name:"Triceps s gumou",  emoji:"🦾", met:4.0, secPerRep:3, perArm:false },
 ];
 const STORE_KEY = "doitnow.v1";
-const REP_MIN = 1, REP_MAX = 300, ITEM_H = 58;
+const REP_MIN = 1, REP_MAX = 300;
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -385,171 +363,121 @@ $$(".tab").forEach(tab=>{
   });
 });
 
-/* ---------------- ADD: exercise carousel ---------------- */
-let selectedIdx = 0;
-let count = 10;
+/* ---------------- ADD: exercise deck + numbers ruler ---------------- */
+const NUM_W = 60; // px slot width per number (must match .numr width in CSS)
+let deckCtrls = [];
 
-function renderCarousel(){
-  const car = $("#carousel"); car.innerHTML = "";
-  const dots = $("#dots"); dots.innerHTML = "";
+function renderDeck(){
+  const deck = $("#deck");
+  deck.innerHTML = "";
+  deckCtrls = [];
+  const total = state.exercises.length;
   state.exercises.forEach((ex,i)=>{
-    const s = document.createElement("div");
-    s.className = "slide";
-    s.dataset.idx = i;
-    s.innerHTML = `<div class="emoji">${ex.emoji}</div>
-      <div class="name">${ex.name}</div>
-      <div class="meta">MET ${ex.met} · ~${ex.secPerRep}s / opak.</div>
-      ${ex.perArm?'<div class="badge">na každú ruku</div>':''}`;
-    car.appendChild(s);
-    const d = document.createElement("div");
-    d.className = "dot";
-    dots.appendChild(d);
+    const page = document.createElement("div");
+    page.className = "page";
+    page.innerHTML = `
+      <div class="page-eyebrow">${i+1} / ${total}</div>
+      <div class="page-emoji">${ex.emoji}</div>
+      <div class="page-title">${ex.name}</div>
+      <div class="page-sub">${ex.perArm ? "počet na každú ruku" : "počet opakovaní"} · MET ${ex.met}</div>
+      <div class="numwrap">
+        <div class="numruler"><div class="numruler-track"></div></div>
+      </div>
+      <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2 ruky" : ""}</div>
+      <button class="btn add">Pridať set 💪</button>`;
+    deck.appendChild(page);
+
+    const ctrl = makeRuler(
+      page.querySelector(".numruler"),
+      page.querySelector(".numruler-track"),
+      ex,
+      page.querySelector(".lk")
+    );
+    deckCtrls.push(ctrl);
+
+    page.querySelector(".add").addEventListener("click",()=>{
+      const reps = ctrl.value();
+      const entry = {
+        id: Date.now()+"-"+Math.random().toString(36).slice(2,6),
+        exId: ex.id, reps, kcal: kcalFor(ex, reps), ts: new Date().toISOString()
+      };
+      state.logs.push(entry);
+      state.lastReps[ex.id] = reps; // remember for next time
+      save();
+      buzz([10,40,10]);
+      toast("Zapísané! +"+fmt(entry.kcal)+" kcal 🔥");
+      updateTodayPill();
+    });
   });
-  updateActiveSlide();
 }
 
-function updateActiveSlide(){
-  const car = $("#carousel");
-  const center = car.scrollLeft + car.clientWidth/2;
-  let best = 0, bestDist = Infinity;
-  $$(".slide").forEach((s,i)=>{
-    const sc = s.offsetLeft + s.offsetWidth/2;
-    const dist = Math.abs(sc - center);
-    if(dist < bestDist){ bestDist = dist; best = i; }
-  });
-  const changed = best !== selectedIdx;
-  if(changed){ selectedIdx = best; buzz(6); }
-  $$(".slide").forEach((s,i)=>s.classList.toggle("active", i===selectedIdx));
-  $$(".dot").forEach((d,i)=>d.classList.toggle("active", i===selectedIdx));
-  const ex = state.exercises[selectedIdx];
-  $("#repLbl").textContent = ex.perArm ? "Opakovaní na každú ruku" : "Počet opakovaní";
-  $("#repUnit").textContent = ex.perArm ? "× / ruka" : "×";
-  if(changed){
-    // prefill wheel with the reps from the last logged set of this exercise
-    setReps(state.lastReps[ex.id] || 10, true);
-  } else {
-    updateKcal();
-  }
-}
-let scrollT;
-$("#carousel").addEventListener("scroll",()=>{
-  cancelAnimationFrame(scrollT);
-  scrollT = requestAnimationFrame(updateActiveSlide);
-});
-
-/* ---------------- ADD: vertical reps wheel ---------------- */
-function buildWheel(){
-  const track = $("#wheelTrack");
-  track.innerHTML = "";
+// One numbers-only horizontal ruler bound to a single exercise page.
+function makeRuler(ruler, track, ex, lkEl){
   for(let v=REP_MIN; v<=REP_MAX; v++){
     const n = document.createElement("div");
-    n.className = "wheel-num";
-    n.dataset.v = v;
+    n.className = "numr";
+    n.style.left = ((v-REP_MIN)*NUM_W) + "px";
     n.textContent = v;
     track.appendChild(n);
   }
-}
-// translateY so that value v sits in the vertical centre of the wheel
-function valueToTranslate(v){
-  const wheel = $("#wheel");
-  return wheel.clientHeight/2 - (v - REP_MIN + 0.5)*ITEM_H;
-}
-function styleWheel(v){
-  const track = $("#wheelTrack");
-  const nums = track.children;
-  for(let i=0;i<nums.length;i++){
-    const nv = i + REP_MIN;
-    const d = Math.abs(nv - v);
-    nums[i].className = "wheel-num" + (d===0?" sel":d===1?" near":"");
-  }
-}
-function setReps(v, animate){
-  v = Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
-  count = v;
-  const track = $("#wheelTrack");
-  track.style.transition = animate ? "transform .25s cubic-bezier(.22,1.2,.4,1)" : "none";
-  track.style.transform = "translateY(" + valueToTranslate(v) + "px)";
-  styleWheel(v);
-  updateKcal();
-}
-function updateKcal(){
-  const ex = state.exercises[selectedIdx];
-  if(ex) $("#liveKcal").textContent = fmt(kcalFor(ex, count));
-}
+  let value = state.lastReps[ex.id] || 10;
 
-(function initWheelDrag(){
-  const wheel = $("#wheel");
-  const track = $("#wheelTrack");
-  let dragging=false, startY=0, startTy=0, lastV=count;
-
-  function curTranslate(){
-    const m = /translateY\(([-0-9.]+)px\)/.exec(track.style.transform);
-    return m ? parseFloat(m[1]) : valueToTranslate(count);
+  const translateFor = v => ruler.clientWidth/2 - ((v-REP_MIN)*NUM_W + NUM_W/2);
+  function style(v){
+    const nums = track.children;
+    for(let i=0;i<nums.length;i++){
+      const d = Math.abs(i + REP_MIN - v);
+      nums[i].className = "numr" + (d<=3 ? " d"+d : "");
+    }
   }
-  function pointerY(e){ return e.touches ? e.touches[0].clientY : e.clientY; }
-
-  function down(e){
-    dragging=true; startY=pointerY(e); startTy=curTranslate();
-    track.style.transition="none";
-    lastV=count;
+  function place(v, animate){
+    v = Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
+    value = v;
+    track.style.transition = animate ? "transform .22s cubic-bezier(.22,1.2,.4,1)" : "none";
+    track.style.transform = "translateX(" + translateFor(v) + "px)";
+    style(v);
+    lkEl.textContent = fmt(kcalFor(ex, v));
   }
+
+  let dragging=false, startX=0, startTx=0, lastV=value;
+  const curTx = () => { const m=/translateX\(([-0-9.]+)px\)/.exec(track.style.transform); return m?parseFloat(m[1]):translateFor(value); };
+  const px = e => e.touches ? e.touches[0].clientX : e.clientX;
+  function down(e){ dragging=true; startX=px(e); startTx=curTx(); track.style.transition="none"; lastV=value; }
   function move(e){
     if(!dragging) return;
     e.preventDefault();
-    const dy = pointerY(e) - startY;
-    let ty = startTy + dy;
-    // value from translate (free drag, dragging down -> lower numbers)
-    let v = Math.round((wheel.clientHeight/2 - ty)/ITEM_H - 0.5) + REP_MIN;
+    const tx = startTx + (px(e)-startX);
+    let v = Math.round((ruler.clientWidth/2 - tx - NUM_W/2)/NUM_W) + REP_MIN;
     v = Math.min(REP_MAX, Math.max(REP_MIN, v));
-    track.style.transform = "translateY(" + ty + "px)";
+    track.style.transform = "translateX(" + tx + "px)";
     if(v !== lastV){
-      lastV = v; count = v;
-      styleWheel(v);
+      lastV=v; value=v; style(v);
       const sel = track.children[v-REP_MIN];
-      if(sel){ sel.classList.add("pop"); setTimeout(()=>sel.classList.remove("pop"),80); }
+      if(sel){ sel.classList.add("pop"); setTimeout(()=>sel.classList.remove("pop"),90); }
       buzz(7); // mechanical notch
-      updateKcal();
+      lkEl.textContent = fmt(kcalFor(ex, v));
     }
   }
-  function up(){
-    if(!dragging) return;
-    dragging=false;
-    setReps(count, true); // snap to centre
-  }
-  wheel.addEventListener("mousedown",down);
+  function up(){ if(!dragging) return; dragging=false; place(value, true); }
+
+  ruler.addEventListener("mousedown",down);
   window.addEventListener("mousemove",move);
   window.addEventListener("mouseup",up);
-  wheel.addEventListener("touchstart",down,{passive:false});
-  wheel.addEventListener("touchmove",move,{passive:false});
-  wheel.addEventListener("touchend",up);
-  // scroll wheel on desktop for convenience
-  wheel.addEventListener("wheel",e=>{ e.preventDefault(); setReps(count + (e.deltaY>0?1:-1), true); }, {passive:false});
-})();
+  ruler.addEventListener("touchstart",down,{passive:false});
+  ruler.addEventListener("touchmove",move,{passive:false});
+  ruler.addEventListener("touchend",up);
+  ruler.addEventListener("wheel",e=>{ e.preventDefault(); place(value + (e.deltaY>0?1:-1), true); },{passive:false});
 
-$("#saveBtn").addEventListener("click",()=>{
-  const ex = state.exercises[selectedIdx];
-  if(!ex) return;
-  const entry = {
-    id: Date.now()+"-"+Math.random().toString(36).slice(2,6),
-    exId: ex.id,
-    reps: count,
-    kcal: kcalFor(ex, count),
-    ts: new Date().toISOString()
-  };
-  state.logs.push(entry);
-  state.lastReps[ex.id] = count; // remember reps for next time on this exercise
-  save();
-  buzz([10,40,10]);
-  toast("Zapísané! +"+fmt(entry.kcal)+" kcal 🔥");
-  updateTodayPill();
-});
+  requestAnimationFrame(()=>place(value,false));
+  return { value:()=>value, reposition:()=>place(value,false) };
+}
 
 /* ---------------- TODAY view ---------------- */
 function logsForDay(key){ return state.logs.filter(l=>l.ts.slice(0,10)===key).sort((a,b)=>b.ts.localeCompare(a.ts)); }
 
 function updateTodayPill(){
-  const logs = logsForDay(todayKey());
-  $("#todayKcalPill").textContent = fmt(logs.reduce((s,l)=>s+l.kcal,0));
+  const el = $("#todayKcalPill");
+  if(el) el.textContent = fmt(logsForDay(todayKey()).reduce((s,l)=>s+l.kcal,0));
 }
 function renderToday(){
   const logs = logsForDay(todayKey());
@@ -665,14 +593,13 @@ function renderSettings(){
       ${custom?'<button class="del" title="Zmazať cvik">✕</button>':''}`;
     row.querySelector("input").addEventListener("change",e=>{
       const v = parseFloat(e.target.value);
-      if(!isNaN(v) && v>0){ ex.met = v; save(); updateTodayPill(); renderCarousel(); toast("Uložené"); }
+      if(!isNaN(v) && v>0){ ex.met = v; save(); updateTodayPill(); renderDeck(); toast("Uložené"); }
     });
     if(custom){
       row.querySelector(".del").addEventListener("click",()=>{
         if(confirm(`Zmazať cvik „${ex.name}"? Záznamy v histórii ostanú zachované.`)){
           state.exercises = state.exercises.filter(x=>x.id!==ex.id);
-          if(selectedIdx >= state.exercises.length) selectedIdx = 0;
-          save(); renderSettings(); renderCarousel(); toast("Cvik zmazaný");
+          save(); renderSettings(); renderDeck(); toast("Cvik zmazaný");
         }
       });
     }
@@ -693,13 +620,13 @@ $("#addExBtn").addEventListener("click",()=>{
   });
   save();
   $("#nxName").value=""; $("#nxEmoji").value=""; $("#nxMet").value=""; $("#nxSec").value=""; $("#nxArm").checked=false;
-  renderSettings(); renderCarousel();
+  renderSettings(); renderDeck();
   buzz([10,40,10]);
   toast("Cvik pridaný ✅");
 });
 $("#weightInput").addEventListener("change",e=>{
   const v = parseFloat(e.target.value);
-  if(!isNaN(v) && v>0){ state.weight = v; save(); updateTodayPill(); updateKcal(); toast("Váha uložená"); }
+  if(!isNaN(v) && v>0){ state.weight = v; save(); updateTodayPill(); renderDeck(); toast("Váha uložená"); }
 });
 $("#exportBtn").addEventListener("click",()=>{
   const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
@@ -716,7 +643,7 @@ $("#importFile").addEventListener("change",e=>{
     try{
       const s = JSON.parse(r.result);
       state = migrate(s); save();
-      renderCarousel(); renderSettings(); updateTodayPill();
+      renderDeck(); renderSettings(); updateTodayPill();
       toast("Záloha načítaná ✅");
     }catch(err){ toast("Chyba pri načítaní"); }
   };
@@ -726,19 +653,16 @@ $("#resetBtn").addEventListener("click",()=>{
   if(confirm("Naozaj vymazať všetky dáta? Toto sa nedá vrátiť.")){
     localStorage.removeItem(STORE_KEY);
     state = load();
-    renderCarousel(); renderSettings(); updateTodayPill();
+    renderDeck(); renderSettings(); updateTodayPill();
     toast("Vymazané");
   }
 });
 
 /* ---------------- Init ---------------- */
-renderCarousel();
-buildWheel();
-const startReps = state.lastReps[state.exercises[selectedIdx].id] || 10;
-window.addEventListener("load",()=>{ setReps(startReps,false); });
-setReps(startReps,false);
+renderDeck();
 updateTodayPill();
-window.addEventListener("resize",()=>setReps(count,false));
+window.addEventListener("load",()=>{ deckCtrls.forEach(c=>c.reposition()); });
+window.addEventListener("resize",()=>{ deckCtrls.forEach(c=>c.reposition()); });
 </script>
 </body>
 </html>
