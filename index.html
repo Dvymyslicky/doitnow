@@ -81,7 +81,7 @@
 
   /* ---------- Single big number scrubber ---------- */
   .numwrap{flex:0 0 auto;width:100%;display:flex;align-items:center;justify-content:center;margin-top:14px}
-  .numruler{position:relative;flex:1;min-width:0;height:260px;overflow:hidden;touch-action:none;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
+  .numruler{position:relative;flex:1;min-width:0;height:260px;overflow:hidden;touch-action:pan-y;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
   .numruler:active{cursor:grabbing}
   .numval{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);font-size:250px;line-height:1;will-change:transform;white-space:nowrap}
   /* stopwatch (timed exercises) */
@@ -572,7 +572,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.13";
+const APP_VERSION = "2026-06-07.14";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -903,13 +903,21 @@ function makeRuler(ruler, valEl, ex, lkEl){
   }
   valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value));
 
-  let dragging=false, startX=0, startVal=value;
+  let dragging=false, startX=0, startY=0, startVal=value, axis=null;
   const px = e => e.touches ? e.touches[0].clientX : e.clientX;
-  function down(e){ dragging=true; startX=px(e); startVal=value; valEl.style.transition="none"; }
+  const py = e => e.touches ? e.touches[0].clientY : e.clientY;
+  function down(e){ dragging=true; startX=px(e); startY=py(e); startVal=value; axis=null; valEl.style.transition="none"; }
   function move(e){
     if(!dragging) return;
-    e.preventDefault();
-    const dx = px(e) - startX;
+    const x = px(e), y = py(e);
+    if(axis===null){
+      const adx = Math.abs(x-startX), ady = Math.abs(y-startY);
+      if(adx < 6 && ady < 6) return;            // not enough movement yet
+      axis = adx > ady ? "h" : "v";
+      if(axis === "v"){ dragging = false; return; } // vertical → let the deck scroll between exercises
+    }
+    e.preventDefault();                          // horizontal → scrub the number
+    const dx = x - startX;
     const steps = Math.round(dx/STEP);
     const v = clamp(startVal - steps);          // reversed direction
     let rem = dx - steps*STEP;                   // fluid nudge with the finger
