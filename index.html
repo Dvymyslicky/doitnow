@@ -224,6 +224,26 @@
   @keyframes slideup{from{transform:translateY(100%)}to{transform:none}}
   .modal h3{margin:0 0 4px}
   .modal .dt{color:var(--muted);font-size:13px;margin-bottom:14px}
+  #dbSearch{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px;font-size:16px;margin:10px 0 6px}
+  #dbList{max-height:60vh;overflow-y:auto}
+
+  /* Full-screen "set added" animation */
+  .addfx{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 42%, rgba(255,107,53,.28), rgba(15,17,21,.94));
+    -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+  .addfx.show{display:flex}
+  .addfx.hide{animation:fxOut .28s ease forwards}
+  @keyframes fxOut{to{opacity:0}}
+  .addfx-card{position:relative;text-align:center}
+  .addfx-ring{position:absolute;left:50%;top:46px;width:140px;height:140px;margin-left:-70px;border-radius:50%;
+    border:4px solid var(--accent);transform:translateY(-50%);animation:fxRing .7s ease-out forwards;opacity:0}
+  @keyframes fxRing{0%{transform:translateY(-50%) scale(.3);opacity:.9}100%{transform:translateY(-50%) scale(2.2);opacity:0}}
+  .addfx-emoji{font-size:120px;line-height:1;animation:fxPop .55s cubic-bezier(.2,1.5,.4,1)}
+  @keyframes fxPop{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+  .addfx-big{font-size:72px;font-weight:800;color:var(--accent2);margin-top:4px;animation:fxUp .4s .1s both ease}
+  .addfx-kcal{font-size:22px;color:var(--txt);margin-top:2px;animation:fxUp .4s .18s both ease}
+  .addfx-name{font-size:15px;color:var(--muted);margin-top:8px;animation:fxUp .4s .26s both ease}
+  @keyframes fxUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -386,6 +406,7 @@
 <div class="modal-bd" id="exEditor">
   <div class="modal">
     <h3 id="exEditTitle">Upraviť cvik</h3>
+    <button class="btn ghost" id="exFromDb" style="margin-bottom:14px">📚 Vybrať z databázy cvikov</button>
     <div style="display:flex;gap:10px;align-items:flex-end">
       <div class="field" style="width:88px">
         <label>Emoji</label>
@@ -406,15 +427,28 @@
         <input type="number" id="exSec" step="0.5" inputmode="decimal" placeholder="3">
       </div>
     </div>
-    <label style="display:flex;align-items:center;gap:10px;font-size:14px;margin:2px 2px 16px;color:var(--txt)">
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;margin:2px 2px 10px;color:var(--txt)">
       <input type="checkbox" id="exArm" style="width:20px;height:20px;accent-color:var(--accent)">
       Zadáva sa na každú ruku/nohu zvlášť (×2)
+    </label>
+    <label style="display:flex;align-items:center;gap:10px;font-size:14px;margin:2px 2px 16px;color:var(--txt)">
+      <input type="checkbox" id="exTimed" style="width:20px;height:20px;accent-color:var(--accent)">
+      Časový režim (zadáva sa v sekundách, napr. plank)
     </label>
     <button class="btn" id="exSave">Uložiť</button>
     <div style="display:flex;gap:10px;margin-top:10px">
       <button class="btn ghost" id="exCancel" style="flex:1">Zrušiť</button>
       <button class="btn danger" id="exDelete" style="flex:1">🗑️ Zmazať</button>
     </div>
+  </div>
+</div>
+
+<!-- Exercise database picker -->
+<div class="modal-bd" id="dbPicker">
+  <div class="modal">
+    <h3>Databáza cvikov</h3>
+    <input type="text" id="dbSearch" placeholder="🔍 Hľadať cvik…" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div id="dbList"></div>
   </div>
 </div>
 
@@ -426,14 +460,114 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Full-screen "set added" animation -->
+<div class="addfx" id="addFx">
+  <div class="addfx-card">
+    <div class="addfx-ring"></div>
+    <div class="addfx-emoji" id="addFxEmoji">💪</div>
+    <div class="addfx-big" id="addFxBig">+0</div>
+    <div class="addfx-kcal" id="addFxKcal">🔥 0 kcal</div>
+    <div class="addfx-name" id="addFxName"></div>
+  </div>
+</div>
+
 <script>
 "use strict";
 /* ---------------- Config / defaults ---------------- */
 // No preset exercises — every user creates their own.
 const DEFAULT_EXERCISES = [];
+
+// Built-in exercise database the user can pick from (MET from the Compendium).
+// timed:true → counted in seconds (time mode) instead of repetitions.
+const EXERCISE_DB = [
+  // 🤸 Calisthenics – tlak
+  {name:"Kliky (push-ups)",emoji:"🤸",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Diamond push-ups",emoji:"💎",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Pike push-ups",emoji:"🔺",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Šikmé kliky (decline)",emoji:"📐",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Kliky na kolenách",emoji:"🧎",met:4.5,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Dipy (bradlá)",emoji:"💪",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Dipy na lavičke",emoji:"🪑",met:5.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  {name:"Pseudo planche push-ups",emoji:"🤸",met:8.5,sec:4,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
+  // 🧗 Calisthenics – ťah
+  {name:"Zhyby nadhmatom",emoji:"🧗",met:8.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
+  {name:"Zhyby podhmatom",emoji:"🧗",met:8.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
+  {name:"Australské zhyby",emoji:"↔️",met:6.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
+  {name:"Muscle-up",emoji:"🆙",met:10.0,sec:4,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
+  {name:"Scapular pulls",emoji:"🔻",met:4.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
+  {name:"Dead hang",emoji:"🪢",met:4.0,sec:1,perArm:false,timed:true,cat:"🧗 Calisthenics – ťah"},
+  // 🦵 Nohy
+  {name:"Drepy",emoji:"🦵",met:5.0,sec:3,perArm:false,timed:false,cat:"🦵 Nohy"},
+  {name:"Výpady",emoji:"🚶",met:5.0,sec:3,perArm:false,timed:false,cat:"🦵 Nohy"},
+  {name:"Bulharské drepy",emoji:"🦿",met:6.0,sec:3,perArm:true,timed:false,cat:"🦵 Nohy"},
+  {name:"Výskoky (jump squats)",emoji:"🦘",met:8.0,sec:2,perArm:false,timed:false,cat:"🦵 Nohy"},
+  {name:"Pistol squat",emoji:"🦩",met:8.0,sec:4,perArm:true,timed:false,cat:"🦵 Nohy"},
+  {name:"Step-ups",emoji:"🪜",met:5.0,sec:3,perArm:true,timed:false,cat:"🦵 Nohy"},
+  {name:"Lýtka (calf raises)",emoji:"🦶",met:4.0,sec:2,perArm:false,timed:false,cat:"🦵 Nohy"},
+  {name:"Glute bridge",emoji:"🌉",met:4.0,sec:3,perArm:false,timed:false,cat:"🦵 Nohy"},
+  {name:"Wall sit",emoji:"🧱",met:5.0,sec:1,perArm:false,timed:true,cat:"🦵 Nohy"},
+  {name:"Nordic hamstring curl",emoji:"🦵",met:6.0,sec:4,perArm:false,timed:false,cat:"🦵 Nohy"},
+  // 🧱 Core / brucho
+  {name:"Plank",emoji:"🧘",met:3.8,sec:1,perArm:false,timed:true,cat:"🧱 Core / brucho"},
+  {name:"Side plank",emoji:"🧘",met:3.8,sec:1,perArm:true,timed:true,cat:"🧱 Core / brucho"},
+  {name:"Sed-ľahy (sit-ups)",emoji:"🛌",met:4.5,sec:3,perArm:false,timed:false,cat:"🧱 Core / brucho"},
+  {name:"Crunches",emoji:"💥",met:3.8,sec:2,perArm:false,timed:false,cat:"🧱 Core / brucho"},
+  {name:"Leg raises",emoji:"🦵",met:4.0,sec:3,perArm:false,timed:false,cat:"🧱 Core / brucho"},
+  {name:"Hollow hold",emoji:"🥚",met:4.0,sec:1,perArm:false,timed:true,cat:"🧱 Core / brucho"},
+  {name:"Russian twists",emoji:"🔄",met:4.0,sec:2,perArm:true,timed:false,cat:"🧱 Core / brucho"},
+  {name:"Mountain climbers",emoji:"⛰️",met:8.0,sec:1,perArm:false,timed:false,cat:"🧱 Core / brucho"},
+  {name:"Bicycle crunches",emoji:"🚴",met:6.0,sec:2,perArm:false,timed:false,cat:"🧱 Core / brucho"},
+  // 🏋️ Kettlebell
+  {name:"KB swing",emoji:"🔔",met:9.8,sec:2,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"Goblet squat",emoji:"🏆",met:5.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB clean",emoji:"🔔",met:8.0,sec:2,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB clean & press",emoji:"🔔",met:8.0,sec:3,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB snatch",emoji:"⚡",met:9.0,sec:2,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"Turkish get-up",emoji:"🤺",met:5.0,sec:8,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB rad (row)",emoji:"🚣",met:6.0,sec:3,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB výpad",emoji:"🔔",met:6.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB deadlift",emoji:"🔔",met:6.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB halo",emoji:"😇",met:4.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
+  {name:"KB thruster",emoji:"🔔",met:8.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
+  // 💪 Posilka – horná
+  {name:"Bench press",emoji:"🛏️",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Incline bench",emoji:"📈",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Tlak nad hlavu (OHP)",emoji:"🆙",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Tlak s činkami",emoji:"🏋️",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Bicepsový zdvih",emoji:"💪",met:3.5,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Kladivá (hammer curl)",emoji:"🔨",met:3.5,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Triceps extension",emoji:"🔱",met:3.5,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Príťahy v predklone",emoji:"🚣",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Lat pulldown",emoji:"🔽",met:5.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Veslovanie (cable row)",emoji:"🚣",met:5.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Face pull",emoji:"😮",met:4.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  {name:"Upažovanie (lateral raise)",emoji:"🦅",met:4.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
+  // 🦿 Posilka – dolná
+  {name:"Drep s činkou",emoji:"🏋️",met:6.0,sec:4,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
+  {name:"Mŕtvy ťah (deadlift)",emoji:"🏋️",met:6.0,sec:4,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
+  {name:"Leg press",emoji:"🦿",met:5.0,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
+  {name:"Rumunský mŕtvy ťah",emoji:"🏋️",met:6.0,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
+  {name:"Leg extension",emoji:"🦵",met:4.5,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
+  {name:"Leg curl",emoji:"🦵",met:4.5,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
+  // 🎗️ Gumy
+  {name:"Biceps s gumou",emoji:"💪",met:3.5,sec:3,perArm:true,timed:false,cat:"🎗️ Gumy"},
+  {name:"Triceps s gumou",emoji:"🦾",met:3.5,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
+  {name:"Upažovanie s gumou",emoji:"🦅",met:4.0,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
+  {name:"Príťahy s gumou",emoji:"🚣",met:4.0,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
+  {name:"Drepy s gumou",emoji:"🦵",met:5.0,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
+  {name:"Band pull-apart",emoji:"↔️",met:3.5,sec:2,perArm:false,timed:false,cat:"🎗️ Gumy"},
+  // 🔥 HIIT / cardio
+  {name:"Burpees",emoji:"🔥",met:8.0,sec:3,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
+  {name:"Jumping jacks",emoji:"⭐",met:8.0,sec:1,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
+  {name:"High knees",emoji:"🏃",met:8.0,sec:1,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
+  {name:"Švihadlo",emoji:"🪢",met:11.0,sec:1,perArm:false,timed:true,cat:"🔥 HIIT / cardio"},
+  {name:"Box jumps",emoji:"📦",met:8.0,sec:2,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
+  {name:"Thrusters",emoji:"🚀",met:8.0,sec:3,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
+  {name:"Battle ropes",emoji:"🌊",met:9.0,sec:1,perArm:false,timed:true,cat:"🔥 HIIT / cardio"},
+];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.7";
+const APP_VERSION = "2026-06-07.8";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -462,6 +596,7 @@ function migrate(s){
   list.forEach(e=>{
     if(e.secPerRep == null) e.secPerRep = 3;
     if(e.perArm == null) e.perArm = false;
+    if(e.timed == null) e.timed = false;
     if(!e.emoji) e.emoji = "🏋️";
     if(!e.met) e.met = 5;
   });
@@ -499,10 +634,16 @@ function buzz(ms){
   if(_hapticEl){ try{ _hapticEl.click(); }catch(e){} } // iOS haptic best-effort
 }
 
-function kcalFor(ex, reps){
+function kcalFor(ex, val){
   const w = state.weight || 0; // 0 until the user sets their weight
-  const totalReps = ex.perArm ? reps*2 : reps;
-  const hours = (totalReps * ex.secPerRep) / 3600;
+  let hours;
+  if(ex.timed){                                  // val = seconds
+    const secs = ex.perArm ? val*2 : val;
+    hours = secs / 3600;
+  } else {                                        // val = reps
+    const totalReps = ex.perArm ? val*2 : val;
+    hours = (totalReps * ex.secPerRep) / 3600;
+  }
   return ex.met * w * hours;
 }
 function fmt(n){ return Math.round(n); }
@@ -545,6 +686,20 @@ function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("show"), 1600);
 }
+// full-screen celebratory animation when a set is added
+function showAddFx(ex, val, kcal){
+  const fx = $("#addFx"); if(!fx) return;
+  $("#addFxEmoji").textContent = ex.emoji || "💪";
+  $("#addFxBig").textContent = ex.timed ? ("+"+val+" s") : ("+"+val);
+  $("#addFxKcal").textContent = "🔥 "+fmt(kcal)+" kcal";
+  $("#addFxName").textContent = ex.name || "";
+  fx.classList.remove("hide");
+  fx.classList.remove("show"); void fx.offsetWidth; // restart animations
+  fx.classList.add("show");
+  clearTimeout(fx._t);
+  fx._t = setTimeout(()=>{ fx.classList.add("hide"); setTimeout(()=>fx.classList.remove("show","hide"), 280); }, 850);
+}
+document.addEventListener("click",e=>{ const fx=$("#addFx"); if(fx && fx.classList.contains("show") && e.target.closest("#addFx")){ clearTimeout(fx._t); fx.classList.add("hide"); setTimeout(()=>fx.classList.remove("show","hide"),280); } });
 
 /* ---------------- Cloud sync (Supabase REST) ---------------- */
 const SYNC_KEY = "doitnow.sync";
@@ -675,7 +830,7 @@ function renderDeck(){
       <div class="page-eyebrow">${i+1} / ${total}</div>
       <div class="page-emoji">${ex.emoji}</div>
       <div class="page-title">${ex.name}</div>
-      <div class="page-sub">${ex.perArm ? "počet na každú ruku" : "počet opakovaní"}</div>
+      <div class="page-sub">${ex.timed ? (ex.perArm ? "trvanie na stranu (sek)" : "trvanie (sekundy)") : (ex.perArm ? "počet na každú ruku" : "počet opakovaní")}</div>
       <div class="numwrap">
         <div class="numruler"><div class="numval">10</div></div>
       </div>
@@ -701,7 +856,7 @@ function renderDeck(){
       state.lastReps[ex.id] = reps; // remember for next time
       save();
       buzz([10,40,10]);
-      toast("Zapísané! +"+fmt(entry.kcal)+" kcal 🔥");
+      showAddFx(ex, reps, entry.kcal);
       updateTodayPill();
     });
   });
@@ -965,11 +1120,11 @@ function renderDayDetail(key){
   const list = $("#dayList");
   if(!logs.length){ list.innerHTML = `<div class="empty"><span class="big">😴</span>V tento deň žiadny tréning.</div>`; return; }
   list.innerHTML = "";
-  // chronological order through the day (oldest first)
-  logs.slice().sort((a,b)=>a.ts.localeCompare(b.ts)).forEach(l=>{
+  // newest first
+  logs.slice().sort((a,b)=>b.ts.localeCompare(a.ts)).forEach(l=>{
     const ex = exById(l.exId) || {name:"(zmazaný)",emoji:"❓",perArm:false};
     const time = new Date(l.ts).toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"});
-    const repTxt = ex.perArm ? `${l.reps}× / ruka` : `${l.reps}× opak.`;
+    const repTxt = ex.timed ? `${l.reps}s${ex.perArm?" / strana":""}` : (ex.perArm ? `${l.reps}× / ruka` : `${l.reps}× opak.`);
     const item = document.createElement("div");
     item.className = "log-item";
     item.innerHTML = `<span class="emoji">${ex.emoji}</span>
@@ -1058,6 +1213,7 @@ function openExEditor(id){
   $("#exMet").value   = ex ? ex.met : "";
   $("#exSec").value   = ex ? ex.secPerRep : 3;
   $("#exArm").checked = ex ? !!ex.perArm : false;
+  $("#exTimed").checked = ex ? !!ex.timed : false;
   $("#exDelete").style.display = ex ? "" : "none";
   $("#exEditor").classList.add("show");
 }
@@ -1071,17 +1227,54 @@ $("#exSave").addEventListener("click",()=>{
   const met = parseFloat($("#exMet").value);
   const sec = parseFloat($("#exSec").value) || 3;
   const perArm = $("#exArm").checked;
+  const timed = $("#exTimed").checked;
   if(!name){ toast("Zadaj názov cviku"); return; }
   if(isNaN(met) || met<=0){ toast("Zadaj platnú MET hodnotu"); return; }
   if(editingId){
     const ex = exById(editingId);
-    if(ex){ ex.name=name; ex.emoji=emoji; ex.met=met; ex.secPerRep=sec; ex.perArm=perArm; }
+    if(ex){ ex.name=name; ex.emoji=emoji; ex.met=met; ex.secPerRep=sec; ex.perArm=perArm; ex.timed=timed; }
   } else {
-    state.exercises.push({ id:"custom-"+Date.now().toString(36), name, emoji, met, secPerRep:sec, perArm });
+    state.exercises.push({ id:"custom-"+Date.now().toString(36), name, emoji, met, secPerRep:sec, perArm, timed });
   }
   save(); closeExEditor(); renderSettings(); renderDeck(); buzz([10,40,10]);
   toast("Uložené ✅");
 });
+
+/* exercise database picker */
+function openDbPicker(){ $("#dbSearch").value=""; buildDbList(""); $("#dbPicker").classList.add("show"); }
+function buildDbList(q){
+  q = (q||"").trim().toLowerCase();
+  const list = $("#dbList"); list.innerHTML = "";
+  const cats = [...new Set(EXERCISE_DB.map(e=>e.cat))];
+  cats.forEach(cat=>{
+    const items = EXERCISE_DB.filter(e=>e.cat===cat && (!q || e.name.toLowerCase().includes(q)));
+    if(!items.length) return;
+    const h = document.createElement("div"); h.className = "section-title"; h.style.marginTop = "12px"; h.textContent = cat;
+    list.appendChild(h);
+    items.forEach(e=>{
+      const row = document.createElement("div"); row.className = "exrow";
+      row.innerHTML = `<span class="emoji">${e.emoji}</span>
+        <div class="info"><div class="nm">${e.name}</div>
+          <div class="sub">MET ${e.met}${e.timed?" · ⏱ čas":""}${e.perArm?" · ×2":""}</div></div>
+        <span class="chev">＋</span>`;
+      row.addEventListener("click",()=>pickFromDb(e));
+      list.appendChild(row);
+    });
+  });
+  if(!list.children.length) list.innerHTML = `<div class="empty">Nič nenájdené.</div>`;
+}
+function pickFromDb(e){
+  $("#exEmoji").value = e.emoji;
+  $("#exName").value = e.name;
+  $("#exMet").value = e.met;
+  $("#exSec").value = e.sec;
+  $("#exArm").checked = !!e.perArm;
+  $("#exTimed").checked = !!e.timed;
+  $("#dbPicker").classList.remove("show");
+}
+$("#exFromDb").addEventListener("click",openDbPicker);
+$("#dbSearch").addEventListener("input",e=>buildDbList(e.target.value));
+$("#dbPicker").addEventListener("click",e=>{ if(e.target.id==="dbPicker") $("#dbPicker").classList.remove("show"); });
 $("#exDelete").addEventListener("click",()=>{
   if(!editingId) return;
   const ex = exById(editingId);
