@@ -52,7 +52,7 @@
   /* Views */
   .view{display:none;animation:fade .25s ease}
   .view.active{display:block}
-  #view-today, #view-cal, #view-set{padding-top:calc(env(safe-area-inset-top) + 16px)}
+  #view-stats, #view-cal, #view-set{padding-top:calc(env(safe-area-inset-top) + 16px)}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
@@ -75,22 +75,19 @@
   .page-title{font-size:30px;font-weight:800;line-height:1.1;margin-top:8px}
   .page-sub{font-size:13px;color:var(--muted);margin-top:6px}
 
-  /* ---------- Numbers-only ruler (horizontal) ---------- */
-  .numwrap{flex:1;width:100%;display:flex;align-items:center;justify-content:center}
-  .numruler{position:relative;width:100%;height:230px;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
+  /* ---------- Single big number + side arrows ---------- */
+  .numwrap{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center}
+  .numruler{position:relative;flex:1;min-width:0;height:240px;overflow:hidden;touch-action:none;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
   .numruler:active{cursor:grabbing}
-  .numruler-track{position:absolute;top:0;bottom:0;left:0;will-change:transform}
-  .numr{
-    position:absolute;top:50%;width:120px;text-align:center;white-space:nowrap;
-    transform:translateY(-50%);font-weight:800;font-variant-numeric:tabular-nums;
-    color:var(--txt);opacity:0;line-height:1;pointer-events:none;
-    transition:font-size .14s ease, opacity .14s ease, color .14s ease;
+  .numval{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);font-size:200px;line-height:1;will-change:transform;white-space:nowrap}
+  .rarr{
+    position:absolute;top:50%;transform:translateY(-50%);z-index:4;
+    width:56px;height:56px;border-radius:50%;background:var(--card2);border:1px solid var(--line);
+    color:var(--txt);font-size:30px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:transform .1s, background .1s;-webkit-user-select:none;user-select:none
   }
-  .numr.d3{opacity:0}
-  .numr.d2{opacity:0}
-  .numr.d1{font-size:44px;opacity:.13}
-  .numr.d0{font-size:176px;opacity:1;color:var(--accent2);z-index:5}
-  .numr.d0.pop{font-size:186px}
+  .rarr.left{left:0} .rarr.right{right:0}
+  .rarr:active{background:var(--accent);color:#fff;transform:translateY(-50%) scale(.9)}
 
   .kcal-live{text-align:center;margin:4px 0 12px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
@@ -105,7 +102,23 @@
   .btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
   .btn.danger{background:var(--card2);color:#ff6b6b;border:1px solid var(--line)}
 
-  /* Today list */
+  /* Stats: range chips */
+  .range-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+  .range-chips::-webkit-scrollbar{display:none}
+  .rchip{flex:0 0 auto;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:9px 16px;font-size:14px;cursor:pointer;transition:.15s}
+  .rchip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;border-color:transparent;font-weight:700}
+
+  /* Stats: per-exercise */
+  .exstat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .exstat .top{display:flex;align-items:center;gap:10px}
+  .exstat .emoji{font-size:20px}
+  .exstat .nm{flex:1;font-weight:600;font-size:14.5px}
+  .exstat .kc{color:var(--accent2);font-weight:700;font-size:14px;white-space:nowrap}
+  .exstat .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .exstat .bar{height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-top:9px}
+  .exstat .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px;transition:width .3s}
+
+  /* stat cards */
   .stat-row{display:flex;gap:10px;margin-bottom:14px}
   .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
   .stat .big{font-size:26px;font-weight:800}
@@ -188,15 +201,28 @@
     <div class="deck" id="deck"></div>
   </section>
 
-  <!-- TODAY -->
-  <section class="view" id="view-today">
-    <div class="stat-row">
-      <div class="stat"><div class="big accent" id="tKcal">0</div><div class="lbl">kcal</div></div>
-      <div class="stat"><div class="big" id="tReps">0</div><div class="lbl">opakovaní</div></div>
-      <div class="stat"><div class="big green" id="tSets">0</div><div class="lbl">setov</div></div>
+  <!-- STATS -->
+  <section class="view" id="view-stats">
+    <div class="section-title">Obdobie</div>
+    <div class="range-chips" id="rangeChips">
+      <button class="rchip active" data-r="today">Dnes</button>
+      <button class="rchip" data-r="7">7 dní</button>
+      <button class="rchip" data-r="30">30 dní</button>
+      <button class="rchip" data-r="month">Tento mesiac</button>
+      <button class="rchip" data-r="year">Tento rok</button>
+      <button class="rchip" data-r="all">Celkovo</button>
     </div>
-    <div class="section-title">Dnešné sety</div>
-    <div id="todayList"></div>
+    <div class="stat-row">
+      <div class="stat"><div class="big accent" id="sKcal">0</div><div class="lbl">kcal</div></div>
+      <div class="stat"><div class="big" id="sReps">0</div><div class="lbl">opakovaní</div></div>
+      <div class="stat"><div class="big green" id="sSets">0</div><div class="lbl">setov</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="big" id="sDays">0</div><div class="lbl">aktívnych dní</div></div>
+      <div class="stat"><div class="big" id="sAvg">0</div><div class="lbl">kcal / aktívny deň</div></div>
+    </div>
+    <div class="section-title">Podľa cviku</div>
+    <div id="statsByEx"></div>
   </section>
 
   <!-- CALENDAR -->
@@ -214,6 +240,9 @@
       <div class="stat"><div class="big accent" id="mKcal">0</div><div class="lbl">kcal / mesiac</div></div>
       <div class="stat"><div class="big green" id="mDays">0</div><div class="lbl">aktívnych dní</div></div>
     </div>
+    <div class="section-title" id="dayTitle">Detail dňa</div>
+    <div class="dt" id="daySub" style="margin:-4px 2px 10px"></div>
+    <div id="dayList"></div>
   </section>
 
   <!-- SETTINGS -->
@@ -268,18 +297,9 @@
   </section>
 </div>
 
-<!-- Day detail modal -->
-<div class="modal-bd" id="dayModal">
-  <div class="modal">
-    <h3 id="dmTitle">Detail dňa</h3>
-    <div class="dt" id="dmSub"></div>
-    <div id="dmList"></div>
-  </div>
-</div>
-
 <nav class="tabbar">
   <button class="tab active" data-view="add"><span class="ico">➕</span>Pridať</button>
-  <button class="tab" data-view="today"><span class="ico">📋</span>Dnes</button>
+  <button class="tab" data-view="stats"><span class="ico">📊</span>Štatistiky</button>
   <button class="tab" data-view="cal"><span class="ico">📅</span>Kalendár</button>
   <button class="tab" data-view="set"><span class="ico">⚙️</span>Nastavenia</button>
 </nav>
@@ -375,14 +395,13 @@ $$(".tab").forEach(tab=>{
     const v = tab.dataset.view;
     $$(".tab").forEach(t=>t.classList.toggle("active", t===tab));
     $$(".view").forEach(s=>s.classList.toggle("active", s.id==="view-"+v));
-    if(v==="today") renderToday();
+    if(v==="stats") renderStats();
     if(v==="cal") renderCalendar();
     if(v==="set") renderSettings();
   });
 });
 
 /* ---------------- ADD: exercise deck + numbers ruler ---------------- */
-const NUM_W = 120; // px slot width per number (must match .numr width in CSS)
 let deckCtrls = [];
 
 function renderDeck(){
@@ -399,7 +418,9 @@ function renderDeck(){
       <div class="page-title">${ex.name}</div>
       <div class="page-sub">${ex.perArm ? "počet na každú ruku" : "počet opakovaní"} · MET ${ex.met}</div>
       <div class="numwrap">
-        <div class="numruler"><div class="numruler-track"></div></div>
+        <button class="rarr left" data-d="-1" aria-label="menej">‹</button>
+        <div class="numruler"><div class="numval">10</div></div>
+        <button class="rarr right" data-d="1" aria-label="viac">›</button>
       </div>
       <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2 ruky" : ""}</div>
       <button class="btn add">Pridať set 💪</button>`;
@@ -407,11 +428,12 @@ function renderDeck(){
 
     const ctrl = makeRuler(
       page.querySelector(".numruler"),
-      page.querySelector(".numruler-track"),
+      page.querySelector(".numval"),
       ex,
       page.querySelector(".lk")
     );
     deckCtrls.push(ctrl);
+    page.querySelectorAll(".rarr").forEach(b=>b.addEventListener("click",()=>ctrl.step(parseInt(b.dataset.d,10))));
 
     page.querySelector(".add").addEventListener("click",()=>{
       const reps = ctrl.value();
@@ -429,54 +451,37 @@ function renderDeck(){
   });
 }
 
-// One numbers-only horizontal ruler bound to a single exercise page.
-function makeRuler(ruler, track, ex, lkEl){
-  for(let v=REP_MIN; v<=REP_MAX; v++){
-    const n = document.createElement("div");
-    n.className = "numr";
-    n.style.left = ((v-REP_MIN)*NUM_W) + "px";
-    n.textContent = v;
-    track.appendChild(n);
-  }
+// Single big number bound to one exercise. Drag to scrub smoothly, arrows for ±1.
+function makeRuler(ruler, valEl, ex, lkEl){
   let value = state.lastReps[ex.id] || 10;
-
-  const translateFor = v => ruler.clientWidth/2 - ((v-REP_MIN)*NUM_W + NUM_W/2);
-  function style(v){
-    const nums = track.children;
-    for(let i=0;i<nums.length;i++){
-      const d = Math.abs(i + REP_MIN - v);
-      nums[i].className = "numr" + (d<=3 ? " d"+d : "");
+  const STEP = 30; // px of drag per ±1
+  function show(){ valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value)); }
+  function setVal(v, dir){
+    v = Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
+    if(v === value) return;
+    value = v; valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value)); buzz(7);
+    if(dir){ // little slide-in when stepping with arrows
+      valEl.style.transition = "none";
+      valEl.style.transform = "translateX(" + (dir*34) + "px)";
+      requestAnimationFrame(()=>{ valEl.style.transition = "transform .15s ease"; valEl.style.transform = "translateX(0)"; });
     }
   }
-  function place(v, animate){
-    v = Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
-    value = v;
-    track.style.transition = animate ? "transform .22s cubic-bezier(.22,1.2,.4,1)" : "none";
-    track.style.transform = "translateX(" + translateFor(v) + "px)";
-    style(v);
-    lkEl.textContent = fmt(kcalFor(ex, v));
-  }
+  show();
 
-  let dragging=false, startX=0, startTx=0, lastV=value;
-  const curTx = () => { const m=/translateX\(([-0-9.]+)px\)/.exec(track.style.transform); return m?parseFloat(m[1]):translateFor(value); };
+  let dragging=false, startX=0, startVal=value;
   const px = e => e.touches ? e.touches[0].clientX : e.clientX;
-  function down(e){ dragging=true; startX=px(e); startTx=curTx(); track.style.transition="none"; lastV=value; }
+  function down(e){ dragging=true; startX=px(e); startVal=value; valEl.style.transition="none"; }
   function move(e){
     if(!dragging) return;
     e.preventDefault();
-    const tx = startTx + (px(e)-startX);
-    let v = Math.round((ruler.clientWidth/2 - tx - NUM_W/2)/NUM_W) + REP_MIN;
-    v = Math.min(REP_MAX, Math.max(REP_MIN, v));
-    track.style.transform = "translateX(" + tx + "px)";
-    if(v !== lastV){
-      lastV=v; value=v; style(v);
-      const sel = track.children[v-REP_MIN];
-      if(sel){ sel.classList.add("pop"); setTimeout(()=>sel.classList.remove("pop"),90); }
-      buzz(7); // mechanical notch
-      lkEl.textContent = fmt(kcalFor(ex, v));
-    }
+    const dx = px(e) - startX;
+    const v = Math.min(REP_MAX, Math.max(REP_MIN, startVal + Math.round(dx/STEP)));
+    let rem = dx - (v-startVal)*STEP;          // fluid nudge with the finger
+    rem = Math.max(-22, Math.min(22, rem));
+    valEl.style.transform = "translateX(" + rem + "px)";
+    if(v !== value){ value=v; valEl.textContent=v; lkEl.textContent=fmt(kcalFor(ex,v)); buzz(7); }
   }
-  function up(){ if(!dragging) return; dragging=false; place(value, true); }
+  function up(){ if(!dragging) return; dragging=false; valEl.style.transition="transform .18s cubic-bezier(.2,1,.3,1)"; valEl.style.transform="translateX(0)"; }
 
   ruler.addEventListener("mousedown",down);
   window.addEventListener("mousemove",move);
@@ -484,50 +489,81 @@ function makeRuler(ruler, track, ex, lkEl){
   ruler.addEventListener("touchstart",down,{passive:false});
   ruler.addEventListener("touchmove",move,{passive:false});
   ruler.addEventListener("touchend",up);
-  ruler.addEventListener("wheel",e=>{ e.preventDefault(); place(value + (e.deltaY>0?1:-1), true); },{passive:false});
+  ruler.addEventListener("wheel",e=>{ e.preventDefault(); const d = e.deltaY>0?-1:1; setVal(value+d, d); },{passive:false});
 
-  requestAnimationFrame(()=>place(value,false));
-  return { value:()=>value, reposition:()=>place(value,false) };
+  return { value:()=>value, step:d=>setVal(value+d, d), reposition:()=>{} };
 }
 
-/* ---------------- TODAY view ---------------- */
+/* ---------------- Shared log helpers ---------------- */
 function logsForDay(key){ return state.logs.filter(l=>l.ts.slice(0,10)===key).sort((a,b)=>b.ts.localeCompare(a.ts)); }
-
+function repsOf(l){ const e=exById(l.exId); return e&&e.perArm ? l.reps*2 : l.reps; }
 function updateTodayPill(){
   const el = $("#todayKcalPill");
   if(el) el.textContent = fmt(logsForDay(todayKey()).reduce((s,l)=>s+l.kcal,0));
 }
-function renderToday(){
-  const logs = logsForDay(todayKey());
+
+/* ---------------- STATS view ---------------- */
+let curRange = "today";
+// returns {logs, label, days} for the selected range
+function logsForRange(r){
+  const now = new Date();
+  let from = null, label = "";
+  if(r==="today"){ from = new Date(now.getFullYear(),now.getMonth(),now.getDate()); label="dnes"; }
+  else if(r==="7"){ from = new Date(now); from.setDate(now.getDate()-6); from.setHours(0,0,0,0); label="posledných 7 dní"; }
+  else if(r==="30"){ from = new Date(now); from.setDate(now.getDate()-29); from.setHours(0,0,0,0); label="posledných 30 dní"; }
+  else if(r==="month"){ from = new Date(now.getFullYear(),now.getMonth(),1); label="tento mesiac"; }
+  else if(r==="year"){ from = new Date(now.getFullYear(),0,1); label="tento rok"; }
+  else { from = null; label="celkovo"; }
+  const logs = from ? state.logs.filter(l=>new Date(l.ts) >= from) : state.logs.slice();
+  return { logs, label, from };
+}
+function renderStats(){
+  $$("#rangeChips .rchip").forEach(c=>c.classList.toggle("active", c.dataset.r===curRange));
+  const { logs, label } = logsForRange(curRange);
   const kcal = logs.reduce((s,l)=>s+l.kcal,0);
-  const reps = logs.reduce((s,l)=>{ const e=exById(l.exId); return s + (e&&e.perArm? l.reps*2 : l.reps); },0);
-  $("#tKcal").textContent = fmt(kcal);
-  $("#tReps").textContent = reps;
-  $("#tSets").textContent = logs.length;
-  const list = $("#todayList");
-  if(!logs.length){ list.innerHTML = `<div class="empty"><span class="big">🛋️</span>Dnes ešte nič. Šup do toho!</div>`; return; }
-  list.innerHTML = "";
+  const reps = logs.reduce((s,l)=>s+repsOf(l),0);
+  const dayset = new Set(logs.map(l=>l.ts.slice(0,10)));
+  const activeDays = dayset.size;
+  $("#sKcal").textContent = fmt(kcal);
+  $("#sReps").textContent = reps;
+  $("#sSets").textContent = logs.length;
+  $("#sDays").textContent = activeDays;
+  $("#sAvg").textContent = activeDays ? fmt(kcal/activeDays) : 0;
+
+  // per-exercise breakdown
+  const agg = {};
   logs.forEach(l=>{
-    const ex = exById(l.exId) || {name:"?",emoji:"❓",perArm:false};
-    const time = new Date(l.ts).toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"});
-    const repTxt = ex.perArm ? `${l.reps}× / ruka` : `${l.reps}× opak.`;
-    const item = document.createElement("div");
-    item.className = "log-item";
-    item.innerHTML = `<span class="emoji">${ex.emoji}</span>
-      <div class="info"><div class="t">${ex.name}</div><div class="s">${repTxt} · ${time}</div></div>
-      <span class="kcal">${fmt(l.kcal)} kcal</span>
-      <button class="del" title="Zmazať">✕</button>`;
-    item.querySelector(".del").addEventListener("click",()=>{
-      state.logs = state.logs.filter(x=>x.id!==l.id);
-      save(); renderToday(); updateTodayPill();
-    });
-    list.appendChild(item);
+    const ex = exById(l.exId) || {id:l.exId, name:"(zmazaný)", emoji:"❓", perArm:false};
+    if(!agg[l.exId]) agg[l.exId] = {ex, reps:0, kcal:0, sets:0};
+    agg[l.exId].reps += repsOf(l);
+    agg[l.exId].kcal += l.kcal; agg[l.exId].sets++;
+  });
+  const rows = Object.values(agg).sort((a,b)=>b.kcal-a.kcal);
+  const maxK = rows.reduce((m,a)=>Math.max(m,a.kcal),0) || 1;
+  const box = $("#statsByEx");
+  if(!rows.length){ box.innerHTML = `<div class="empty"><span class="big">📊</span>Za toto obdobie žiadne tréningy.</div>`; return; }
+  box.innerHTML = "";
+  rows.forEach(a=>{
+    const el = document.createElement("div");
+    el.className = "exstat";
+    el.innerHTML = `
+      <div class="top">
+        <span class="emoji">${a.ex.emoji}</span>
+        <span class="nm">${a.ex.name}</span>
+        <span class="kc">${fmt(a.kcal)} kcal</span>
+      </div>
+      <div class="sub">${a.reps}× opakovaní · ${a.sets} ${a.sets===1?"set":"setov"}</div>
+      <div class="bar"><i style="width:${Math.max(4, a.kcal/maxK*100)}%"></i></div>`;
+    box.appendChild(el);
   });
 }
+$$("#rangeChips .rchip").forEach(c=>{
+  c.addEventListener("click",()=>{ curRange = c.dataset.r; renderStats(); });
+});
 
 /* ---------------- CALENDAR view ---------------- */
 let calRef = new Date(); calRef.setDate(1);
-let selDay = null;
+let selDay = todayKey();
 
 function dayTotals(key){
   const logs = logsForDay(key);
@@ -557,44 +593,43 @@ function renderCalendar(){
     let heat = tot.kcal>0 ? (tot.kcal>150?"heat3":tot.kcal>70?"heat2":"heat1") : "";
     cell.className = "cal-day "+heat + (tot.sets?" has":"") + (key===tk?" today":"") + (key===selDay?" sel":"");
     cell.innerHTML = `<div class="dn">${d}</div>` + (tot.kcal>0?`<div class="dk">${fmt(tot.kcal)}</div>`:"");
-    cell.addEventListener("click",()=>{ selDay=key; renderCalendar(); openDay(key); });
+    cell.addEventListener("click",()=>{ selDay=key; renderCalendar(); });
     grid.appendChild(cell);
   }
   $("#mKcal").textContent = fmt(monthKcal);
   $("#mDays").textContent = activeDays;
+  renderDayDetail(selDay);
 }
 $("#prevM").addEventListener("click",()=>{ calRef.setMonth(calRef.getMonth()-1); renderCalendar(); });
 $("#nextM").addEventListener("click",()=>{ calRef.setMonth(calRef.getMonth()+1); renderCalendar(); });
 
-function openDay(key){
+// inline list of all exercises done on the selected day
+function renderDayDetail(key){
   const logs = logsForDay(key);
   const d = new Date(key+"T00:00:00");
-  $("#dmTitle").textContent = d.toLocaleDateString("sk-SK",{weekday:"long",day:"numeric",month:"long"});
+  const isToday = key===todayKey();
+  $("#dayTitle").textContent = (isToday?"Dnes · ":"") + d.toLocaleDateString("sk-SK",{weekday:"long",day:"numeric",month:"long"});
   const agg = {}; let totK = 0;
   logs.forEach(l=>{
-    const ex = exById(l.exId) || {name:"?",emoji:"❓",perArm:false};
+    const ex = exById(l.exId) || {name:"(zmazaný)",emoji:"❓",perArm:false};
     if(!agg[l.exId]) agg[l.exId] = {ex, reps:0, kcal:0, sets:0};
-    agg[l.exId].reps += ex.perArm ? l.reps*2 : l.reps;
+    agg[l.exId].reps += repsOf(l);
     agg[l.exId].kcal += l.kcal; agg[l.exId].sets++;
     totK += l.kcal;
   });
-  $("#dmSub").textContent = logs.length ? `Spolu ${fmt(totK)} kcal · ${logs.length} setov` : "Žiadny tréning";
-  const list = $("#dmList");
-  if(!logs.length){ list.innerHTML = `<div class="empty"><span class="big">😴</span>V tento deň žiadny tréning.</div>`; }
-  else{
-    list.innerHTML = "";
-    Object.values(agg).sort((a,b)=>b.kcal-a.kcal).forEach(a=>{
-      const item = document.createElement("div");
-      item.className = "log-item";
-      item.innerHTML = `<span class="emoji">${a.ex.emoji}</span>
-        <div class="info"><div class="t">${a.ex.name}</div><div class="s">${a.reps}× opak. · ${a.sets} ${a.sets===1?"set":"sety"}</div></div>
-        <span class="kcal">${fmt(a.kcal)} kcal</span>`;
-      list.appendChild(item);
-    });
-  }
-  $("#dayModal").classList.add("show");
+  $("#daySub").textContent = logs.length ? `Spolu ${fmt(totK)} kcal · ${logs.length} setov` : "";
+  const list = $("#dayList");
+  if(!logs.length){ list.innerHTML = `<div class="empty"><span class="big">😴</span>V tento deň žiadny tréning.</div>`; return; }
+  list.innerHTML = "";
+  Object.values(agg).sort((a,b)=>b.kcal-a.kcal).forEach(a=>{
+    const item = document.createElement("div");
+    item.className = "log-item";
+    item.innerHTML = `<span class="emoji">${a.ex.emoji}</span>
+      <div class="info"><div class="t">${a.ex.name}</div><div class="s">${a.reps}× opak. · ${a.sets} ${a.sets===1?"set":"sety"}</div></div>
+      <span class="kcal">${fmt(a.kcal)} kcal</span>`;
+    list.appendChild(item);
+  });
 }
-$("#dayModal").addEventListener("click",e=>{ if(e.target.id==="dayModal") $("#dayModal").classList.remove("show"); });
 
 /* ---------------- SETTINGS view ---------------- */
 function renderSettings(){
@@ -677,6 +712,8 @@ $("#resetBtn").addEventListener("click",()=>{
 });
 
 /* ---------------- Init ---------------- */
+// Ask the browser to keep our storage (helps avoid iOS clearing it).
+if(navigator.storage && navigator.storage.persist){ try{ navigator.storage.persist(); }catch(e){} }
 initHaptic();
 renderDeck();
 updateTodayPill();
