@@ -288,6 +288,30 @@
       <button class="btn" id="addExBtn">➕ Pridať cvik</button>
     </div>
     <div class="card">
+      <div class="section-title">☁️ Cloud synchronizácia</div>
+      <div class="field">
+        <label>Supabase URL</label>
+        <input type="text" id="syncUrl" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>Anon key (verejný)</label>
+        <input type="text" id="syncKey" placeholder="eyJhbGc..." autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label>Sync kód (rovnaký na všetkých zariadeniach)</label>
+        <input type="text" id="syncCode" placeholder="napr. denis-2026" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <button class="btn" id="syncSaveBtn" style="margin-bottom:10px">🔗 Pripojiť & synchronizovať</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn ghost" id="syncPullBtn" style="flex:1">⬇️ Z cloudu</button>
+        <button class="btn ghost" id="syncPushBtn" style="flex:1">⬆️ Do cloudu</button>
+      </div>
+      <div id="syncStatus" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
+      <p style="font-size:11.5px;color:var(--muted);margin:10px 2px 0;line-height:1.5">
+        Dáta sa automaticky nahrávajú pri každej zmene a sťahujú pri otvorení. Rovnaký sync kód = tie isté dáta na všetkých zariadeniach.
+      </p>
+    </div>
+    <div class="card">
       <div class="section-title">Dáta</div>
       <button class="btn ghost" id="exportBtn" style="margin-bottom:10px">⬇️ Exportovať zálohu (JSON)</button>
       <button class="btn ghost" id="importBtn" style="margin-bottom:10px">⬆️ Importovať zálohu</button>
@@ -325,12 +349,13 @@ function load(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){ const s = JSON.parse(raw); return migrate(s); }
   }catch(e){}
-  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[], lastReps:{} };
+  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[], lastReps:{}, updatedAt:0 };
 }
 function migrate(s){
   s.weight = s.weight || 90;
   s.logs = s.logs || [];
   s.lastReps = s.lastReps || {};
+  s.updatedAt = s.updatedAt || 0;
   let list = Array.isArray(s.exercises) ? s.exercises.slice() : [];
   // ensure the built-in exercises always exist (backfill any missing fields)
   DEFAULT_EXERCISES.forEach(def=>{
@@ -348,7 +373,8 @@ function migrate(s){
   return s;
 }
 const DEFAULT_IDS = DEFAULT_EXERCISES.map(e=>e.id);
-function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function persistLocal(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+function save(){ state.updatedAt = Date.now(); persistLocal(); scheduleCloudPush(); }
 
 /* ---------------- Helpers ---------------- */
 const $ = sel => document.querySelector(sel);
@@ -387,6 +413,65 @@ function fmt(n){ return Math.round(n); }
 function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("show"), 1600);
+}
+
+/* ---------------- Cloud sync (Supabase REST) ---------------- */
+const SYNC_KEY = "doitnow.sync";
+const SYNC_TABLE = "doitnow_sync";
+let sync = (()=>{ try{ return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; }catch(e){ return {}; } })();
+function saveSyncCfg(){ localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); }
+function syncReady(){ return !!(sync.url && sync.key && sync.code); }
+function setSyncStatus(t){ const el = $("#syncStatus"); if(el) el.textContent = t; }
+function cloudHeaders(){ return { "apikey":sync.key, "Authorization":"Bearer "+sync.key, "Content-Type":"application/json" }; }
+
+async function cloudPush(){
+  if(!syncReady()) return;
+  setSyncStatus("Nahrávam…");
+  try{
+    const body = [{ code: sync.code, data: state, updated_at: new Date().toISOString() }];
+    const res = await fetch(`${sync.url}/rest/v1/${SYNC_TABLE}`, {
+      method:"POST",
+      headers: Object.assign(cloudHeaders(), { "Prefer":"resolution=merge-duplicates,return=minimal" }),
+      body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    setSyncStatus("Uložené do cloudu ✓ "+new Date().toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){ setSyncStatus("⚠️ Sync zlyhal: "+e.message); }
+}
+async function cloudPull(adoptAlways){
+  if(!syncReady()) return;
+  setSyncStatus("Sťahujem…");
+  try{
+    const res = await fetch(`${sync.url}/rest/v1/${SYNC_TABLE}?code=eq.${encodeURIComponent(sync.code)}&select=data`, { headers: cloudHeaders() });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const rows = await res.json();
+    if(rows.length && rows[0].data){
+      const remote = rows[0].data;
+      const rAt = remote.updatedAt || 0;
+      if(adoptAlways || rAt > (state.updatedAt||0)){
+        state = migrate(remote);
+        persistLocal();
+        refreshAll();
+        setSyncStatus("Načítané z cloudu ✓");
+      } else if((state.updatedAt||0) > rAt){
+        await cloudPush();
+      } else {
+        setSyncStatus("Zosynchronizované ✓");
+      }
+    } else {
+      await cloudPush(); // nothing in cloud yet
+    }
+  }catch(e){ setSyncStatus("⚠️ Sync zlyhal: "+e.message); }
+}
+let _pushT;
+function scheduleCloudPush(){ if(!syncReady()) return; clearTimeout(_pushT); _pushT = setTimeout(cloudPush, 1500); }
+
+function refreshAll(){
+  renderDeck();
+  renderSettings();
+  if($("#view-stats") && $("#view-stats").classList.contains("active")) renderStats();
+  if($("#view-cal") && $("#view-cal").classList.contains("active")) renderCalendar();
+  updateTodayPill();
 }
 
 /* ---------------- Navigation ---------------- */
@@ -634,6 +719,10 @@ function renderDayDetail(key){
 /* ---------------- SETTINGS view ---------------- */
 function renderSettings(){
   $("#weightInput").value = state.weight;
+  $("#syncUrl").value = sync.url || "";
+  $("#syncKey").value = sync.key || "";
+  $("#syncCode").value = sync.code || "";
+  if(syncReady() && !$("#syncStatus").textContent) setSyncStatus("Pripojené ✓");
   const ml = $("#metList"); ml.innerHTML = "";
   state.exercises.forEach(ex=>{
     const custom = !DEFAULT_IDS.includes(ex.id);
@@ -710,6 +799,23 @@ $("#resetBtn").addEventListener("click",()=>{
     toast("Vymazané");
   }
 });
+$("#syncSaveBtn").addEventListener("click",()=>{
+  const url = $("#syncUrl").value.trim().replace(/\/+$/,"");
+  const key = $("#syncKey").value.trim();
+  const code = $("#syncCode").value.trim();
+  if(!url || !key || !code){ toast("Vyplň URL, key aj kód"); return; }
+  sync = { url, key, code }; saveSyncCfg();
+  toast("Pripájam k cloudu…");
+  cloudPull(); // merge: novšia verzia (lokál/cloud) vyhrá
+});
+$("#syncPullBtn").addEventListener("click",()=>{
+  if(!syncReady()){ toast("Najprv sa pripoj"); return; }
+  if(confirm("Stiahnuť dáta z cloudu a prepísať lokálne?")) cloudPull(true);
+});
+$("#syncPushBtn").addEventListener("click",()=>{
+  if(!syncReady()){ toast("Najprv sa pripoj"); return; }
+  cloudPush();
+});
 
 /* ---------------- Init ---------------- */
 // Ask the browser to keep our storage (helps avoid iOS clearing it).
@@ -717,7 +823,10 @@ if(navigator.storage && navigator.storage.persist){ try{ navigator.storage.persi
 initHaptic();
 renderDeck();
 updateTodayPill();
+if(syncReady()) cloudPull();           // pull latest from cloud on launch
 window.addEventListener("load",()=>{ deckCtrls.forEach(c=>c.reposition()); });
+// also re-sync when the app comes back to the foreground
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden && syncReady()) cloudPull(); });
 window.addEventListener("resize",()=>{ deckCtrls.forEach(c=>c.reposition()); });
 </script>
 </body>
