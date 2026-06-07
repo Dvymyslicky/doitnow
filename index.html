@@ -572,7 +572,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.9";
+const APP_VERSION = "2026-06-07.10";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -702,7 +702,7 @@ function showAddFx(ex, val, kcal){
   fx.classList.remove("show"); void fx.offsetWidth; // restart animations
   fx.classList.add("show");
   clearTimeout(fx._t);
-  fx._t = setTimeout(()=>{ fx.classList.add("hide"); setTimeout(()=>fx.classList.remove("show","hide"), 280); }, 850);
+  fx._t = setTimeout(()=>{ fx.classList.add("hide"); setTimeout(()=>fx.classList.remove("show","hide"), 280); }, 2500);
 }
 document.addEventListener("click",e=>{ const fx=$("#addFx"); if(fx && fx.classList.contains("show") && e.target.closest("#addFx")){ clearTimeout(fx._t); fx.classList.add("hide"); setTimeout(()=>fx.classList.remove("show","hide"),280); } });
 
