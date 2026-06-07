@@ -75,19 +75,11 @@
   .page-title{font-size:30px;font-weight:800;line-height:1.1;margin-top:8px}
   .page-sub{font-size:13px;color:var(--muted);margin-top:6px}
 
-  /* ---------- Single big number + side arrows ---------- */
-  .numwrap{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center}
-  .numruler{position:relative;flex:1;min-width:0;height:240px;overflow:hidden;touch-action:none;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
+  /* ---------- Single big number scrubber ---------- */
+  .numwrap{flex:1;width:100%;display:flex;align-items:center;justify-content:center}
+  .numruler{position:relative;flex:1;min-width:0;height:280px;overflow:hidden;touch-action:none;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
   .numruler:active{cursor:grabbing}
-  .numval{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);font-size:200px;line-height:1;will-change:transform;white-space:nowrap}
-  .rarr{
-    position:absolute;top:50%;transform:translateY(-50%);z-index:4;
-    width:56px;height:56px;border-radius:50%;background:var(--card2);border:1px solid var(--line);
-    color:var(--txt);font-size:30px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:transform .1s, background .1s;-webkit-user-select:none;user-select:none
-  }
-  .rarr.left{left:0} .rarr.right{right:0}
-  .rarr:active{background:var(--accent);color:#fff;transform:translateY(-50%) scale(.9)}
+  .numval{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);font-size:250px;line-height:1;will-change:transform;white-space:nowrap}
 
   .kcal-live{text-align:center;margin:4px 0 12px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
@@ -503,9 +495,7 @@ function renderDeck(){
       <div class="page-title">${ex.name}</div>
       <div class="page-sub">${ex.perArm ? "počet na každú ruku" : "počet opakovaní"} · MET ${ex.met}</div>
       <div class="numwrap">
-        <button class="rarr left" data-d="-1" aria-label="menej">‹</button>
         <div class="numruler"><div class="numval">10</div></div>
-        <button class="rarr right" data-d="1" aria-label="viac">›</button>
       </div>
       <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2 ruky" : ""}</div>
       <button class="btn add">Pridať set 💪</button>`;
@@ -518,7 +508,6 @@ function renderDeck(){
       page.querySelector(".lk")
     );
     deckCtrls.push(ctrl);
-    page.querySelectorAll(".rarr").forEach(b=>b.addEventListener("click",()=>ctrl.step(parseInt(b.dataset.d,10))));
 
     page.querySelector(".add").addEventListener("click",()=>{
       const reps = ctrl.value();
@@ -536,22 +525,17 @@ function renderDeck(){
   });
 }
 
-// Single big number bound to one exercise. Drag to scrub smoothly, arrows for ±1.
+// Single big number bound to one exercise. Drag to scrub smoothly.
 function makeRuler(ruler, valEl, ex, lkEl){
   let value = state.lastReps[ex.id] || 10;
   const STEP = 30; // px of drag per ±1
-  function show(){ valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value)); }
-  function setVal(v, dir){
-    v = Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
+  const clamp = v => Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
+  function setVal(v){
+    v = clamp(v);
     if(v === value) return;
     value = v; valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value)); buzz(7);
-    if(dir){ // little slide-in when stepping with arrows
-      valEl.style.transition = "none";
-      valEl.style.transform = "translateX(" + (dir*34) + "px)";
-      requestAnimationFrame(()=>{ valEl.style.transition = "transform .15s ease"; valEl.style.transform = "translateX(0)"; });
-    }
   }
-  show();
+  valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value));
 
   let dragging=false, startX=0, startVal=value;
   const px = e => e.touches ? e.touches[0].clientX : e.clientX;
@@ -560,8 +544,9 @@ function makeRuler(ruler, valEl, ex, lkEl){
     if(!dragging) return;
     e.preventDefault();
     const dx = px(e) - startX;
-    const v = Math.min(REP_MAX, Math.max(REP_MIN, startVal + Math.round(dx/STEP)));
-    let rem = dx - (v-startVal)*STEP;          // fluid nudge with the finger
+    const steps = Math.round(dx/STEP);
+    const v = clamp(startVal - steps);          // reversed direction
+    let rem = dx - steps*STEP;                   // fluid nudge with the finger
     rem = Math.max(-22, Math.min(22, rem));
     valEl.style.transform = "translateX(" + rem + "px)";
     if(v !== value){ value=v; valEl.textContent=v; lkEl.textContent=fmt(kcalFor(ex,v)); buzz(7); }
@@ -574,9 +559,9 @@ function makeRuler(ruler, valEl, ex, lkEl){
   ruler.addEventListener("touchstart",down,{passive:false});
   ruler.addEventListener("touchmove",move,{passive:false});
   ruler.addEventListener("touchend",up);
-  ruler.addEventListener("wheel",e=>{ e.preventDefault(); const d = e.deltaY>0?-1:1; setVal(value+d, d); },{passive:false});
+  ruler.addEventListener("wheel",e=>{ e.preventDefault(); setVal(value+(e.deltaY>0?-1:1)); },{passive:false});
 
-  return { value:()=>value, step:d=>setVal(value+d, d), reposition:()=>{} };
+  return { value:()=>value, step:d=>setVal(value+d), reposition:()=>{} };
 }
 
 /* ---------------- Shared log helpers ---------------- */
@@ -688,30 +673,34 @@ function renderCalendar(){
 $("#prevM").addEventListener("click",()=>{ calRef.setMonth(calRef.getMonth()-1); renderCalendar(); });
 $("#nextM").addEventListener("click",()=>{ calRef.setMonth(calRef.getMonth()+1); renderCalendar(); });
 
-// inline list of all exercises done on the selected day
+// inline list of all sets done on the selected day, with the time of each
 function renderDayDetail(key){
   const logs = logsForDay(key);
   const d = new Date(key+"T00:00:00");
   const isToday = key===todayKey();
   $("#dayTitle").textContent = (isToday?"Dnes · ":"") + d.toLocaleDateString("sk-SK",{weekday:"long",day:"numeric",month:"long"});
-  const agg = {}; let totK = 0;
-  logs.forEach(l=>{
-    const ex = exById(l.exId) || {name:"(zmazaný)",emoji:"❓",perArm:false};
-    if(!agg[l.exId]) agg[l.exId] = {ex, reps:0, kcal:0, sets:0};
-    agg[l.exId].reps += repsOf(l);
-    agg[l.exId].kcal += l.kcal; agg[l.exId].sets++;
-    totK += l.kcal;
-  });
+  const totK = logs.reduce((s,l)=>s+l.kcal,0);
   $("#daySub").textContent = logs.length ? `Spolu ${fmt(totK)} kcal · ${logs.length} setov` : "";
   const list = $("#dayList");
   if(!logs.length){ list.innerHTML = `<div class="empty"><span class="big">😴</span>V tento deň žiadny tréning.</div>`; return; }
   list.innerHTML = "";
-  Object.values(agg).sort((a,b)=>b.kcal-a.kcal).forEach(a=>{
+  // chronological order through the day (oldest first)
+  logs.slice().sort((a,b)=>a.ts.localeCompare(b.ts)).forEach(l=>{
+    const ex = exById(l.exId) || {name:"(zmazaný)",emoji:"❓",perArm:false};
+    const time = new Date(l.ts).toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"});
+    const repTxt = ex.perArm ? `${l.reps}× / ruka` : `${l.reps}× opak.`;
     const item = document.createElement("div");
     item.className = "log-item";
-    item.innerHTML = `<span class="emoji">${a.ex.emoji}</span>
-      <div class="info"><div class="t">${a.ex.name}</div><div class="s">${a.reps}× opak. · ${a.sets} ${a.sets===1?"set":"sety"}</div></div>
-      <span class="kcal">${fmt(a.kcal)} kcal</span>`;
+    item.innerHTML = `<span class="emoji">${ex.emoji}</span>
+      <div class="info"><div class="t">${ex.name}</div><div class="s">🕒 ${time} · ${repTxt}</div></div>
+      <span class="kcal">${fmt(l.kcal)} kcal</span>
+      <button class="del" title="Zmazať set">✕</button>`;
+    item.querySelector(".del").addEventListener("click",()=>{
+      if(confirm(`Zmazať tento set (${repTxt} o ${time})?`)){
+        state.logs = state.logs.filter(x=>x.id!==l.id);
+        save(); renderCalendar();
+      }
+    });
     list.appendChild(item);
   });
 }
