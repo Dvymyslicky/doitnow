@@ -609,7 +609,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.23";
+const APP_VERSION = "2026-06-07.24";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -1370,11 +1370,13 @@ function openDbPicker(){ $("#dbSearch").value=""; buildDbList(""); $("#dbPicker"
 function buildDbList(q){
   q = (q||"").trim().toLowerCase();
   const list = $("#dbList"); list.innerHTML = "";
-  // hide DB exercises already in the user's (non-deleted) list
-  const owned = new Set(state.exercises.filter(e=>!e.deleted).map(e=>e.name.trim().toLowerCase()));
+  // hide DB exercises already in the user's (non-deleted) list — match loosely
+  // (ignore spaces, hyphens, case & accents so "push-ups" == "push ups")
+  const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g,"");
+  const owned = new Set(state.exercises.filter(e=>!e.deleted).map(e=>norm(e.name)));
   const cats = [...new Set(EXERCISE_DB.map(e=>e.cat))];
   cats.forEach(cat=>{
-    const items = EXERCISE_DB.filter(e=>e.cat===cat && !owned.has(e.name.trim().toLowerCase()) && (!q || e.name.toLowerCase().includes(q)));
+    const items = EXERCISE_DB.filter(e=>e.cat===cat && !owned.has(norm(e.name)) && (!q || e.name.toLowerCase().includes(q)));
     if(!items.length) return;
     const h = document.createElement("div"); h.className = "section-title"; h.style.marginTop = "12px"; h.textContent = cat;
     list.appendChild(h);
