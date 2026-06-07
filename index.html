@@ -169,6 +169,8 @@
   .exrow .nm{font-weight:600;font-size:15px}
   .exrow .sub{font-size:12px;color:var(--muted);margin-top:2px}
   .exrow .chev{color:var(--muted);font-size:22px;line-height:1}
+  .exrow .drag{color:var(--muted);font-size:18px;line-height:1;cursor:grab;touch-action:none;padding:0 2px;user-select:none}
+  .exrow.dragging{opacity:.9;border-color:var(--accent);box-shadow:0 10px 24px rgba(0,0,0,.45)}
 
   /* Tabbar */
   .tabbar{
@@ -180,6 +182,14 @@
   .tab{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;padding:4px 6px;transition:.15s;flex:1}
   .tab .ico{font-size:22px}
   .tab.active{color:var(--accent)}
+  /* center "Pridať" raised orange button (half above the bar) */
+  .tabbar{overflow:visible}
+  .tab.center .ico{
+    width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;font-size:30px;font-weight:700;
+    margin-top:-28px;box-shadow:0 6px 18px rgba(255,107,53,.5);border:4px solid var(--bg)
+  }
+  .tab.center{color:var(--accent)}
 
   /* Friends / leaderboard */
   .profile-strip{display:flex;align-items:center;justify-content:space-between}
@@ -948,15 +958,50 @@ function renderSettings(){
   state.exercises.forEach(ex=>{
     const row = document.createElement("div");
     row.className = "exrow";
-    row.innerHTML = `<span class="emoji">${ex.emoji}</span>
+    row.dataset.id = ex.id;
+    row.innerHTML = `<span class="drag" title="Presunúť">⠿</span>
+      <span class="emoji">${ex.emoji}</span>
       <div class="info">
         <div class="nm">${ex.name}</div>
         <div class="sub">MET ${ex.met} · ~${ex.secPerRep}s/opak.${ex.perArm ? " · na ruku ×2" : ""}</div>
       </div>
       <span class="chev">›</span>`;
-    row.addEventListener("click",()=>openExEditor(ex.id));
+    row.addEventListener("click",(e)=>{ if(e.target.closest(".drag")) return; openExEditor(ex.id); });
+    row.querySelector(".drag").addEventListener("pointerdown",(e)=>startExDrag(e,row));
     ml.appendChild(row);
   });
+}
+
+/* drag & drop reordering of exercises */
+let _dragRow = null;
+function startExDrag(e, row){
+  e.preventDefault();
+  _dragRow = row;
+  row.classList.add("dragging");
+  document.addEventListener("pointermove", onExDragMove);
+  document.addEventListener("pointerup", endExDrag, { once:true });
+}
+function onExDragMove(e){
+  if(!_dragRow) return;
+  const list = $("#exList");
+  const others = [...list.querySelectorAll(".exrow:not(.dragging)")];
+  let after = null;
+  for(const r of others){
+    const box = r.getBoundingClientRect();
+    if(e.clientY < box.top + box.height/2){ after = r; break; }
+  }
+  if(after) list.insertBefore(_dragRow, after);
+  else list.appendChild(_dragRow);
+}
+function endExDrag(){
+  document.removeEventListener("pointermove", onExDragMove);
+  if(!_dragRow) return;
+  _dragRow.classList.remove("dragging");
+  _dragRow = null;
+  const ids = [...$("#exList").querySelectorAll(".exrow")].map(r=>r.dataset.id);
+  state.exercises.sort((a,b)=>ids.indexOf(a.id)-ids.indexOf(b.id));
+  save(); renderDeck();
+  buzz(8);
 }
 
 /* ---------- Exercise editor (add / edit / delete in one place) ---------- */
