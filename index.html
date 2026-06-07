@@ -528,7 +528,7 @@ function renderDeck(){
 // Single big number bound to one exercise. Drag to scrub smoothly.
 function makeRuler(ruler, valEl, ex, lkEl){
   let value = state.lastReps[ex.id] || 10;
-  const STEP = 30; // px of drag per ±1
+  const STEP = 52; // px of drag per ±1 (higher = slower / easier to hit a number)
   const clamp = v => Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
   function setVal(v){
     v = clamp(v);
@@ -547,7 +547,7 @@ function makeRuler(ruler, valEl, ex, lkEl){
     const steps = Math.round(dx/STEP);
     const v = clamp(startVal - steps);          // reversed direction
     let rem = dx - steps*STEP;                   // fluid nudge with the finger
-    rem = Math.max(-22, Math.min(22, rem));
+    rem = Math.max(-26, Math.min(26, rem));
     valEl.style.transform = "translateX(" + rem + "px)";
     if(v !== value){ value=v; valEl.textContent=v; lkEl.textContent=fmt(kcalFor(ex,v)); buzz(7); }
   }
