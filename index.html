@@ -259,7 +259,9 @@
         <div class="ps-name" id="frMe">—</div>
         <div class="ps-stats">
           <span class="ps-flame">🔥 <b id="frStreak">0</b></span>
-          <span class="ps-badge">🥇 <b id="frWins">0</b></span>
+          <span class="ps-badge">🥇 <b id="frG">0</b></span>
+          <span class="ps-badge">🥈 <b id="frS">0</b></span>
+          <span class="ps-badge">🥉 <b id="frB">0</b></span>
         </div>
       </div>
       <div class="range-chips" id="frTabs">
@@ -419,6 +421,8 @@ function migrate(s){
   s.userId = s.userId || newId();
   s.profile = s.profile || { name:"", group:"", wins:{} };
   s.profile.wins = s.profile.wins || {};
+  // legacy: wins used to be {week:true} (gold only) -> convert to rank 1
+  Object.keys(s.profile.wins).forEach(k=>{ if(s.profile.wins[k]===true) s.profile.wins[k]=1; });
   // Seed defaults only on a truly fresh list; otherwise honour the user's list
   // (so deleted exercises stay deleted). Backfill any missing fields per item.
   let list = (Array.isArray(s.exercises) && s.exercises.length) ? s.exercises.slice() : DEFAULT_EXERCISES.map(e=>({...e}));
@@ -495,7 +499,13 @@ function weeklyKcalMap(){
   Object.keys(m).sort().slice(-8).forEach(k=> out[k] = Math.round(m[k]));
   return out;
 }
-function winCount(){ return state.profile && state.profile.wins ? Object.keys(state.profile.wins).length : 0; }
+// count of medals by placement from profile.wins {week: rank}
+function medalCounts(){
+  const c = {g:0,s:0,b:0};
+  const w = (state.profile && state.profile.wins) || {};
+  Object.values(w).forEach(r=>{ if(r===1)c.g++; else if(r===2)c.s++; else if(r===3)c.b++; });
+  return c;
+}
 
 function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
@@ -559,6 +569,7 @@ function friendsReady(){ return syncReady() && state.profile && state.profile.gr
 async function publishFriend(){
   if(!friendsReady()) return;
   try{
+    const mc = medalCounts();
     const row = [{
       grp: state.profile.group,
       uid: state.userId,
@@ -566,7 +577,8 @@ async function publishFriend(){
       streak: computeStreak(),
       total: Math.round(state.logs.reduce((s,l)=>s+l.kcal,0)),
       weeks: weeklyKcalMap(),
-      wins: winCount(),
+      wins: mc.g,
+      medals: mc,
       updated_at: new Date().toISOString()
     }];
     await fetch(`${sync.url}/rest/v1/${FRIENDS_TABLE}`, {
@@ -775,7 +787,7 @@ async function renderFriends(){
   setup.style.display = "none"; main.style.display = "";
   $("#frMe").textContent = state.profile.name;
   $("#frStreak").textContent = computeStreak();
-  $("#frWins").textContent = winCount();
+  updateMyMedals();
   const lb = $("#leaderboard");
   lb.innerHTML = `<div class="empty">Načítavam…</div>`;
   try{
@@ -796,29 +808,36 @@ function renderLeaderboard(rows){
   rows.forEach((r,i)=>{
     const me = r.uid===state.userId;
     const rank = medals[i] || (i+1)+".";
+    const m = r.medals || {g:r.wins||0,s:0,b:0};
+    const medStr = `${m.g?`🥇${m.g} `:""}${m.s?`🥈${m.s} `:""}${m.b?`🥉${m.b}`:""}`.trim();
     const el = document.createElement("div");
     el.className = "lb-row" + (me?" me":"");
     el.innerHTML = `<span class="lb-rank">${rank}</span>
       <div class="lb-info">
-        <div class="lb-name">${r.name||"?"}${me?" (ty)":""}${r.wins?`<span class="lb-wins">🥇${r.wins}</span>`:""}</div>
+        <div class="lb-name">${r.name||"?"}${me?" (ty)":""}${medStr?`<span class="lb-wins">${medStr}</span>`:""}</div>
         <div class="lb-sub">🔥 ${r.streak||0} dní v rade</div>
       </div>
       <span class="lb-kcal">${fmt(val(r))} kcal</span>`;
     lb.appendChild(el);
   });
 }
-// each user self-awards a badge if they won the just-finished week
+function updateMyMedals(){
+  const mc = medalCounts();
+  $("#frG").textContent = mc.g; $("#frS").textContent = mc.s; $("#frB").textContent = mc.b;
+}
+// each user self-awards a medal (1st/2nd/3rd) for the just-finished week
 function checkWeeklyWin(rows){
   const lw = prevWeekKey();
-  const scored = rows.map(r=>({ uid:r.uid, k:(r.weeks && r.weeks[lw]) ? r.weeks[lw] : 0 }));
+  if(state.profile.wins[lw]) return;
+  const scored = rows.map(r=>({ uid:r.uid, k:(r.weeks && r.weeks[lw]) ? r.weeks[lw] : 0 })).filter(s=>s.k>0);
   const mine = (scored.find(s=>s.uid===state.userId)||{k:0}).k;
-  if(mine<=0 || state.profile.wins[lw]) return;
-  const top = Math.max(...scored.map(s=>s.k));
-  const ties = scored.filter(s=>s.k===top).length;
-  if(mine===top && ties===1){
-    state.profile.wins[lw] = true; save();
-    $("#frWins").textContent = winCount();
-    toast("🥇 Vyhral si minulý týždeň!");
+  if(mine<=0) return;
+  const rank = scored.filter(s=>s.k>mine).length + 1;  // competition ranking (ties share rank)
+  if(rank<=3){
+    state.profile.wins[lw] = rank; save();
+    updateMyMedals();
+    const medal = rank===1?"🥇":rank===2?"🥈":"🥉";
+    toast(`${medal} ${rank}. miesto minulý týždeň!`);
     publishFriend();
   }
 }
