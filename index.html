@@ -59,7 +59,7 @@
   .section-title{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:4px 2px 10px}
 
   /* ---------- Exercise deck (vertical presentation pages) ---------- */
-  #view-add.active{display:flex;flex-direction:column;height:calc(100dvh - 96px - env(safe-area-inset-bottom))}
+  #view-add.active{display:flex;flex-direction:column;height:calc(100dvh - 92px - env(safe-area-inset-bottom) / 2)}
   .deck{
     flex:1;min-height:0;overflow-y:auto;scroll-snap-type:y mandatory;
     margin:0 -16px;scrollbar-width:none;-ms-overflow-style:none;
@@ -68,7 +68,7 @@
   .page{
     height:100%;scroll-snap-align:start;
     display:flex;flex-direction:column;align-items:center;
-    padding:calc(env(safe-area-inset-top) + 14px) 24px 26px;text-align:center;
+    padding:calc(env(safe-area-inset-top) + 14px) 24px 22px;text-align:center;
   }
   .page-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);opacity:.7}
   .page-emoji{font-size:54px;line-height:1;margin-top:8px}
@@ -635,7 +635,7 @@ function renderDeck(){
       <div class="page-eyebrow">${i+1} / ${total}</div>
       <div class="page-emoji">${ex.emoji}</div>
       <div class="page-title">${ex.name}</div>
-      <div class="page-sub">${ex.perArm ? "počet na každú ruku" : "počet opakovaní"} · MET ${ex.met}</div>
+      <div class="page-sub">${ex.perArm ? "počet na každú ruku" : "počet opakovaní"}</div>
       <div class="numwrap">
         <div class="numruler"><div class="numval">10</div></div>
       </div>
