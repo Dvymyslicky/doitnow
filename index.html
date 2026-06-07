@@ -351,6 +351,7 @@
       <input type="file" id="importFile" accept="application/json" hidden>
       <button class="btn danger" id="resetBtn">🗑️ Vymazať všetky dáta</button>
     </div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);padding:4px 0 2px">DoItNow · verzia <span id="appVer"></span></div>
   </section>
 </div>
 
@@ -411,6 +412,7 @@ const DEFAULT_EXERCISES = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
+const APP_VERSION = "2026-06-07.1";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -1102,6 +1104,9 @@ $("#syncPushBtn").addEventListener("click",()=>{
 });
 
 /* ---------------- Init ---------------- */
+// Service worker: network-first, so the app auto-updates when online.
+if("serviceWorker" in navigator){ try{ navigator.serviceWorker.register("sw.js"); }catch(e){} }
+const _ver = $("#appVer"); if(_ver) _ver.textContent = APP_VERSION;
 // Ask the browser to keep our storage (helps avoid iOS clearing it).
 if(navigator.storage && navigator.storage.persist){ try{ navigator.storage.persist(); }catch(e){} }
 initHaptic();
