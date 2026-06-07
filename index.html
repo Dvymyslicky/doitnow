@@ -240,7 +240,6 @@
     <div class="card profile-strip">
       <div class="ps-name" id="pfName">Tvoj profil</div>
       <div class="ps-stats">
-        <span class="ps-flame">🔥 <b id="pfStreak">0</b></span>
         <span class="ps-badge">🥇 <b id="pfG">0</b></span>
         <span class="ps-badge">🥈 <b id="pfS">0</b></span>
         <span class="ps-badge">🥉 <b id="pfB">0</b></span>
@@ -435,7 +434,7 @@ const DEFAULT_EXERCISES = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.4";
+const APP_VERSION = "2026-06-07.5";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -810,7 +809,6 @@ $$("#rangeChips .rchip").forEach(c=>{
 /* ---------------- PROFILE view (personal + stats + calendar) ---------------- */
 function renderProfile(){
   $("#pfName").textContent = (state.profile && state.profile.name) ? state.profile.name : "Tvoj profil";
-  $("#pfStreak").textContent = computeStreak();
   const mc = medalCounts();
   [["pfG",mc.g],["pfS",mc.s],["pfB",mc.b]].forEach(([id,n])=>{
     const b = $("#"+id); b.textContent = n; b.parentElement.style.display = n>0 ? "" : "none";
