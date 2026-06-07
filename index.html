@@ -569,7 +569,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.16";
+const APP_VERSION = "2026-06-07.17";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -818,7 +818,8 @@ function renderDeck(){
   const deck = $("#deck");
   deck.innerHTML = "";
   deckCtrls = [];
-  if(!state.exercises.length){
+  const exList = state.exercises.filter(e=>!e.deleted);
+  if(!exList.length){
     deck.innerHTML = `<div class="page">
       <div class="page-emoji">🏋️</div>
       <div class="page-title">Začni vytvorením cviku</div>
@@ -829,8 +830,8 @@ function renderDeck(){
     if(b) b.addEventListener("click",()=>{ showView("set","profile"); openExEditor(null); });
     return;
   }
-  const total = state.exercises.length;
-  state.exercises.forEach((ex,i)=>{
+  const total = exList.length;
+  exList.forEach((ex,i)=>{
     const page = document.createElement("div");
     page.className = "page";
     const subText = ex.timed ? (ex.perArm ? "stopky · na stranu" : "stopky")
@@ -1193,10 +1194,11 @@ function renderSettings(){
   $("#syncCode").value = sync.code || "";
   if(syncReady() && !$("#syncStatus").textContent) setSyncStatus("Pripojené ✓");
   const ml = $("#exList"); ml.innerHTML = "";
-  if(!state.exercises.length){
+  const visibleEx = state.exercises.filter(e=>!e.deleted);
+  if(!visibleEx.length){
     ml.innerHTML = `<div class="empty"><span class="big">🏋️</span>Žiadne cviky. Pridaj prvý nižšie.</div>`;
   }
-  state.exercises.forEach(ex=>{
+  visibleEx.forEach(ex=>{
     const row = document.createElement("div");
     row.className = "exrow";
     row.dataset.id = ex.id;
@@ -1321,8 +1323,8 @@ $("#dbPicker").addEventListener("click",e=>{ if(e.target.id==="dbPicker") $("#db
 $("#exDelete").addEventListener("click",()=>{
   if(!editingId) return;
   const ex = exById(editingId);
-  if(confirm(`Zmazať cvik „${ex?ex.name:""}"? Záznamy v histórii ostanú zachované.`)){
-    state.exercises = state.exercises.filter(x=>x.id!==editingId);
+  if(confirm(`Zmazať cvik „${ex?ex.name:""}"? Zo zoznamu zmizne, ale v histórii ostane zachovaný.`)){
+    if(ex) ex.deleted = true;   // archive (keep for history) instead of removing
     save(); closeExEditor(); renderSettings(); renderDeck(); toast("Cvik zmazaný");
   }
 });
