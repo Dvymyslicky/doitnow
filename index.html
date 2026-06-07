@@ -77,20 +77,20 @@
 
   /* ---------- Numbers-only ruler (horizontal) ---------- */
   .numwrap{flex:1;width:100%;display:flex;align-items:center;justify-content:center}
-  .numruler{position:relative;width:100%;height:130px;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
+  .numruler{position:relative;width:100%;height:230px;overflow:hidden;touch-action:none;user-select:none;cursor:grab}
   .numruler:active{cursor:grabbing}
   .numruler-track{position:absolute;top:0;bottom:0;left:0;will-change:transform}
   .numr{
-    position:absolute;top:50%;width:60px;text-align:center;white-space:nowrap;
+    position:absolute;top:50%;width:120px;text-align:center;white-space:nowrap;
     transform:translateY(-50%);font-weight:800;font-variant-numeric:tabular-nums;
     color:var(--txt);opacity:0;line-height:1;pointer-events:none;
     transition:font-size .14s ease, opacity .14s ease, color .14s ease;
   }
-  .numr.d3{font-size:26px;opacity:.06}
-  .numr.d2{font-size:34px;opacity:.12}
-  .numr.d1{font-size:46px;opacity:.22}
-  .numr.d0{font-size:92px;opacity:1;color:var(--accent2);z-index:5}
-  .numr.d0.pop{font-size:100px}
+  .numr.d3{opacity:0}
+  .numr.d2{opacity:0}
+  .numr.d1{font-size:44px;opacity:.13}
+  .numr.d0{font-size:176px;opacity:1;color:var(--accent2);z-index:5}
+  .numr.d0.pop{font-size:186px}
 
   .kcal-live{text-align:center;margin:4px 0 12px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
@@ -337,7 +337,25 @@ const pad = n => String(n).padStart(2,"0");
 function dayKey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
 function todayKey(){ return dayKey(new Date()); }
 function exById(id){ return state.exercises.find(e=>e.id===id); }
-function buzz(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+// Haptics: navigator.vibrate works on Android; iOS Safari (17.4+) needs the
+// hidden <input switch> toggle trick, which fires a subtle system haptic.
+let _hapticEl = null;
+function initHaptic(){
+  try{
+    const l = document.createElement("label");
+    l.setAttribute("aria-hidden","true");
+    l.style.cssText = "position:absolute;left:-9999px;width:0;height:0;overflow:hidden;pointer-events:none";
+    const i = document.createElement("input");
+    i.type = "checkbox"; i.setAttribute("switch","");
+    l.appendChild(i);
+    document.body.appendChild(l);
+    _hapticEl = l;
+  }catch(e){}
+}
+function buzz(ms){
+  if(navigator.vibrate){ try{ navigator.vibrate(ms); }catch(e){} }
+  if(_hapticEl){ try{ _hapticEl.click(); }catch(e){} } // iOS haptic best-effort
+}
 
 function kcalFor(ex, reps){
   const totalReps = ex.perArm ? reps*2 : reps;
@@ -364,7 +382,7 @@ $$(".tab").forEach(tab=>{
 });
 
 /* ---------------- ADD: exercise deck + numbers ruler ---------------- */
-const NUM_W = 60; // px slot width per number (must match .numr width in CSS)
+const NUM_W = 120; // px slot width per number (must match .numr width in CSS)
 let deckCtrls = [];
 
 function renderDeck(){
@@ -659,6 +677,7 @@ $("#resetBtn").addEventListener("click",()=>{
 });
 
 /* ---------------- Init ---------------- */
+initHaptic();
 renderDeck();
 updateTodayPill();
 window.addEventListener("load",()=>{ deckCtrls.forEach(c=>c.reposition()); });
