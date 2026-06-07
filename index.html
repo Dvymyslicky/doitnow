@@ -295,7 +295,6 @@
         <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 2px 14px">
           Spoj sa s priateľmi cez spoločný <b>skupinový kód</b> a súťažte v rebríčku podľa kcal. Každý má vlastný save, ale rovnaký skupinový kód vás dá do jedného rebríčka.
         </p>
-        <div class="field"><label>Tvoje meno</label><input type="text" id="frName" placeholder="napr. Denis"></div>
         <div class="field"><label>Skupinový kód (rovnaký pre všetkých priateľov)</label><input type="text" id="frGroup" placeholder="napr. partia-2026" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
         <button class="btn" id="frJoin">👥 Pripojiť sa</button>
         <div id="frSetupNote" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
@@ -316,7 +315,7 @@
         <button class="rchip" data-fr="total">Celkovo</button>
       </div>
       <div id="leaderboard"></div>
-      <button class="btn ghost" id="frEdit" style="margin-top:6px">⚙️ Zmeniť meno / skupinu</button>
+      <button class="btn ghost" id="frEdit" style="margin-top:6px">⚙️ Zmeniť skupinu</button>
     </div>
   </section>
 
@@ -329,6 +328,10 @@
     </div>
     <div class="card">
       <div class="section-title">Profil</div>
+      <div class="field">
+        <label>Meno (zobrazí sa priateľom v rebríčku)</label>
+        <input type="text" id="nameInput" placeholder="napr. Denis">
+      </div>
       <div class="field">
         <label>Telesná hmotnosť (kg)</label>
         <input type="number" id="weightInput" inputmode="decimal" step="0.5">
@@ -432,7 +435,7 @@ const DEFAULT_EXERCISES = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.3";
+const APP_VERSION = "2026-06-07.4";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -822,9 +825,9 @@ async function renderFriends(){
   const setup = $("#friendsSetup"), main = $("#friendsMain");
   if(!friendsReady()){
     setup.style.display = ""; main.style.display = "none";
-    $("#frName").value = (state.profile.name||"");
     $("#frGroup").value = (state.profile.group||"");
-    $("#frSetupNote").textContent = syncReady() ? "" : "⚠️ Najprv nastav Cloud synchronizáciu v sekcii Viac.";
+    $("#frSetupNote").textContent = !syncReady() ? "⚠️ Najprv nastav Cloud synchronizáciu v ⚙️ Nastaveniach."
+      : (!state.profile.name ? "⚠️ Najprv si zadaj Meno v ⚙️ Nastaveniach." : "");
     return;
   }
   setup.style.display = "none"; main.style.display = "";
@@ -891,18 +894,16 @@ $$("#frTabs .rchip").forEach(c=>{
   c.addEventListener("click",()=>{ frMode = c.dataset.fr; $$("#frTabs .rchip").forEach(x=>x.classList.toggle("active",x===c)); renderFriends(); });
 });
 $("#frJoin").addEventListener("click",()=>{
-  const name = $("#frName").value.trim();
   const group = $("#frGroup").value.trim();
-  if(!syncReady()){ toast("Najprv nastav Cloud sync (Viac)"); return; }
-  if(!name){ toast("Zadaj svoje meno"); return; }
+  if(!syncReady()){ toast("Najprv nastav Cloud sync (⚙️ Nastavenia)"); return; }
+  if(!state.profile.name){ toast("Najprv si zadaj Meno v ⚙️ Nastaveniach"); return; }
   if(!group){ toast("Zadaj skupinový kód"); return; }
-  state.profile.name = name; state.profile.group = group;
+  state.profile.group = group;
   save(); toast("Pripojené 👥"); renderFriends();
 });
 $("#frEdit").addEventListener("click",()=>{
   $("#friendsMain").style.display = "none";
   $("#friendsSetup").style.display = "";
-  $("#frName").value = state.profile.name || "";
   $("#frGroup").value = state.profile.group || "";
 });
 
@@ -982,6 +983,7 @@ function renderDayDetail(key){
 
 /* ---------------- SETTINGS view ---------------- */
 function renderSettings(){
+  $("#nameInput").value = (state.profile && state.profile.name) || "";
   $("#weightInput").value = state.weight;
   $("#syncUrl").value = sync.url || "";
   $("#syncKey").value = sync.key || "";
@@ -1082,6 +1084,10 @@ $("#exDelete").addEventListener("click",()=>{
     state.exercises = state.exercises.filter(x=>x.id!==editingId);
     save(); closeExEditor(); renderSettings(); renderDeck(); toast("Cvik zmazaný");
   }
+});
+$("#nameInput").addEventListener("change",e=>{
+  state.profile.name = e.target.value.trim();
+  save(); publishFriend(); toast("Meno uložené");
 });
 $("#weightInput").addEventListener("change",e=>{
   const v = parseFloat(e.target.value);
