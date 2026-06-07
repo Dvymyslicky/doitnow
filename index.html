@@ -833,7 +833,10 @@ function renderLeaderboard(rows){
 }
 function updateMyMedals(){
   const mc = medalCounts();
-  $("#frG").textContent = mc.g; $("#frS").textContent = mc.s; $("#frB").textContent = mc.b;
+  [["frG",mc.g],["frS",mc.s],["frB",mc.b]].forEach(([id,n])=>{
+    const b = $("#"+id); b.textContent = n;
+    b.parentElement.style.display = n>0 ? "" : "none"; // hide medal when 0
+  });
 }
 // each user self-awards a medal (1st/2nd/3rd) for the just-finished week
 function checkWeeklyWin(rows){
