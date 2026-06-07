@@ -57,51 +57,48 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
   .section-title{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:4px 2px 10px}
 
-  /* ---------- Exercise carousel ---------- */
+  /* ---------- Exercise carousel (fullscreen swipe) ---------- */
+  #view-add.active{display:flex;flex-direction:column;height:calc(100dvh - 150px)}
   .carousel{
-    display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;
-    padding:6px 0 8px;margin:0 -16px;padding-left:16px;padding-right:16px;
+    display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;
+    padding:8px 16px;margin:0 -16px;flex:1;min-height:0;
     scrollbar-width:none;-ms-overflow-style:none;
   }
   .carousel::-webkit-scrollbar{display:none}
   .slide{
-    flex:0 0 80%;scroll-snap-align:center;
-    border-radius:24px;border:1.5px solid var(--line);
+    flex:0 0 86%;scroll-snap-align:center;
+    border-radius:28px;border:1.5px solid var(--line);
     background:linear-gradient(160deg,var(--card2),var(--card));
-    padding:26px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;
+    padding:26px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;
     transition:transform .3s ease, opacity .3s ease, border-color .3s ease, box-shadow .3s ease;
-    transform:scale(.9);opacity:.5;box-shadow:var(--shadow)
+    transform:scale(.92);opacity:.45;box-shadow:var(--shadow)
   }
   .slide.active{transform:scale(1);opacity:1;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,0 12px 30px rgba(255,107,53,.18)}
-  .slide .emoji{font-size:56px;line-height:1}
-  .slide .name{font-weight:700;font-size:19px}
-  .slide .meta{font-size:12px;color:var(--muted)}
-  .slide .badge{font-size:11px;color:var(--accent2);background:rgba(255,177,66,.12);padding:3px 10px;border-radius:999px}
+  .slide .emoji{font-size:88px;line-height:1}
+  .slide .name{font-weight:800;font-size:26px;line-height:1.15}
+  .slide .meta{font-size:13px;color:var(--muted)}
+  .slide .badge{font-size:12px;color:var(--accent2);background:rgba(255,177,66,.12);padding:4px 12px;border-radius:999px}
+  .slide .hint{font-size:11px;color:var(--muted);opacity:.6;margin-top:6px;letter-spacing:1px}
 
-  .dots{display:flex;justify-content:center;gap:7px;margin:4px 0 16px}
+  .dots{display:flex;justify-content:center;gap:7px;margin:10px 0 12px}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.2s}
   .dot.active{background:var(--accent);width:20px;border-radius:4px}
 
-  /* ---------- Horizontal ruler picker ---------- */
-  .ruler-card{padding:18px 0 16px;overflow:hidden}
-  .ruler-label{text-align:center;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-  .ruler-value{text-align:center;font-weight:800;font-size:60px;line-height:1;font-variant-numeric:tabular-nums;transition:transform .08s ease}
-  .ruler-value.pop{transform:scale(1.12)}
-  .ruler-value small{font-size:15px;color:var(--muted);font-weight:600;margin-left:6px}
-  .ruler{position:relative;height:78px;margin-top:10px;touch-action:none;cursor:grab;user-select:none}
-  .ruler:active{cursor:grabbing}
-  .ruler-fade-l,.ruler-fade-r{position:absolute;top:0;bottom:0;width:64px;z-index:3;pointer-events:none}
-  .ruler-fade-l{left:0;background:linear-gradient(90deg,var(--card),transparent)}
-  .ruler-fade-r{right:0;background:linear-gradient(270deg,var(--card),transparent)}
-  .ruler-pointer{position:absolute;left:50%;top:6px;bottom:18px;width:3px;margin-left:-1.5px;background:var(--accent);z-index:4;border-radius:2px;box-shadow:0 0 8px rgba(255,107,53,.6)}
-  .ruler-pointer::after{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--accent)}
-  .ruler-track{position:absolute;top:8px;height:46px;left:0;will-change:transform}
-  .tick{position:absolute;bottom:0;width:2px;background:var(--line);border-radius:2px}
-  .tick.minor{height:16px}
-  .tick.major{height:30px;background:var(--muted)}
-  .tick-num{position:absolute;bottom:32px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+  /* ---------- Reps wheel (vertical big numbers) ---------- */
+  .rep-label{text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:2px 0}
+  .wheel{position:relative;height:174px;margin:2px 0 4px;touch-action:none;user-select:none;overflow:hidden;cursor:grab}
+  .wheel:active{cursor:grabbing}
+  .wheel-band{position:absolute;left:60px;right:60px;top:50%;height:58px;transform:translateY(-50%);border-radius:16px;background:rgba(255,107,53,.10);border:1px solid rgba(255,107,53,.35);z-index:1;pointer-events:none}
+  .wheel-fade-t,.wheel-fade-b{position:absolute;left:0;right:0;height:58px;z-index:3;pointer-events:none}
+  .wheel-fade-t{top:0;background:linear-gradient(180deg,var(--card),transparent)}
+  .wheel-fade-b{bottom:0;background:linear-gradient(0deg,var(--card),transparent)}
+  .wheel-track{position:absolute;left:0;right:0;top:0;z-index:2;will-change:transform}
+  .wheel-num{height:58px;display:flex;align-items:center;justify-content:center;font-weight:800;font-variant-numeric:tabular-nums;font-size:22px;color:var(--muted);opacity:.45;transition:color .12s,opacity .12s,font-size .12s,transform .12s}
+  .wheel-num.near{opacity:.85;font-size:27px}
+  .wheel-num.sel{color:var(--accent2);opacity:1;font-size:44px;transform:scale(1.03)}
+  .wheel-num.sel.pop{transform:scale(1.12)}
 
-  .kcal-live{text-align:center;margin-top:14px;font-size:14px;color:var(--muted)}
+  .kcal-live{text-align:center;margin:6px 0 10px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
 
   .btn{
@@ -198,21 +195,17 @@
 
   <!-- ADD -->
   <section class="view active" id="view-add">
-    <div class="section-title">Cvik</div>
     <div class="carousel" id="carousel"></div>
     <div class="dots" id="dots"></div>
 
-    <div class="card ruler-card">
-      <div class="ruler-label" id="repLbl">Počet opakovaní</div>
-      <div class="ruler-value" id="rulerValue">10<small id="repUnit">×</small></div>
-      <div class="ruler" id="ruler">
-        <div class="ruler-fade-l"></div>
-        <div class="ruler-fade-r"></div>
-        <div class="ruler-pointer"></div>
-        <div class="ruler-track" id="rulerTrack"></div>
-      </div>
-      <div class="kcal-live">≈ <b id="liveKcal">0</b> kcal</div>
+    <div class="rep-label" id="repLbl">Počet opakovaní</div>
+    <div class="wheel" id="wheel">
+      <div class="wheel-band"></div>
+      <div class="wheel-fade-t"></div>
+      <div class="wheel-fade-b"></div>
+      <div class="wheel-track" id="wheelTrack"></div>
     </div>
+    <div class="kcal-live"><span id="repUnit">×</span> · ≈ <b id="liveKcal">0</b> kcal</div>
 
     <button class="btn" id="saveBtn">Pridať set 💪</button>
   </section>
@@ -325,7 +318,7 @@ const DEFAULT_EXERCISES = [
   { id:"triceps",  name:"Triceps s gumou",  emoji:"🦾", met:4.0, secPerRep:3, perArm:false },
 ];
 const STORE_KEY = "doitnow.v1";
-const RULER_MIN = 1, RULER_MAX = 300, SPACING = 16;
+const REP_MIN = 1, REP_MAX = 300, ITEM_H = 58;
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -432,8 +425,8 @@ function updateActiveSlide(){
   $("#repLbl").textContent = ex.perArm ? "Opakovaní na každú ruku" : "Počet opakovaní";
   $("#repUnit").textContent = ex.perArm ? "× / ruka" : "×";
   if(changed){
-    // prefill ruler with the reps from the last logged set of this exercise
-    setRulerValue(state.lastReps[ex.id] || 10, true);
+    // prefill wheel with the reps from the last logged set of this exercise
+    setReps(state.lastReps[ex.id] || 10, true);
   } else {
     updateKcal();
   }
@@ -444,36 +437,39 @@ $("#carousel").addEventListener("scroll",()=>{
   scrollT = requestAnimationFrame(updateActiveSlide);
 });
 
-/* ---------------- ADD: horizontal ruler picker ---------------- */
-function buildRuler(){
-  const track = $("#rulerTrack");
+/* ---------------- ADD: vertical reps wheel ---------------- */
+function buildWheel(){
+  const track = $("#wheelTrack");
   track.innerHTML = "";
-  for(let v=RULER_MIN; v<=RULER_MAX; v++){
-    const t = document.createElement("div");
-    const major = v % 5 === 0;
-    t.className = "tick " + (major?"major":"minor");
-    t.style.left = (v*SPACING) + "px";
-    track.appendChild(t);
-    if(v % 10 === 0){
-      const n = document.createElement("div");
-      n.className = "tick-num";
-      n.style.left = (v*SPACING) + "px";
-      n.textContent = v;
-      track.appendChild(n);
-    }
+  for(let v=REP_MIN; v<=REP_MAX; v++){
+    const n = document.createElement("div");
+    n.className = "wheel-num";
+    n.dataset.v = v;
+    n.textContent = v;
+    track.appendChild(n);
   }
 }
+// translateY so that value v sits in the vertical centre of the wheel
 function valueToTranslate(v){
-  const ruler = $("#ruler");
-  return ruler.clientWidth/2 - v*SPACING;
+  const wheel = $("#wheel");
+  return wheel.clientHeight/2 - (v - REP_MIN + 0.5)*ITEM_H;
 }
-function setRulerValue(v, animate){
-  v = Math.min(RULER_MAX, Math.max(RULER_MIN, Math.round(v)));
+function styleWheel(v){
+  const track = $("#wheelTrack");
+  const nums = track.children;
+  for(let i=0;i<nums.length;i++){
+    const nv = i + REP_MIN;
+    const d = Math.abs(nv - v);
+    nums[i].className = "wheel-num" + (d===0?" sel":d===1?" near":"");
+  }
+}
+function setReps(v, animate){
+  v = Math.min(REP_MAX, Math.max(REP_MIN, Math.round(v)));
   count = v;
-  const track = $("#rulerTrack");
+  const track = $("#wheelTrack");
   track.style.transition = animate ? "transform .25s cubic-bezier(.22,1.2,.4,1)" : "none";
-  track.style.transform = "translateX(" + valueToTranslate(v) + "px)";
-  $("#rulerValue").childNodes[0].nodeValue = v;
+  track.style.transform = "translateY(" + valueToTranslate(v) + "px)";
+  styleWheel(v);
   updateKcal();
 }
 function updateKcal(){
@@ -481,36 +477,36 @@ function updateKcal(){
   if(ex) $("#liveKcal").textContent = fmt(kcalFor(ex, count));
 }
 
-(function initRulerDrag(){
-  const ruler = $("#ruler");
-  const track = $("#rulerTrack");
-  const valEl = $("#rulerValue");
-  let dragging=false, startX=0, startTx=0, lastV=count;
+(function initWheelDrag(){
+  const wheel = $("#wheel");
+  const track = $("#wheelTrack");
+  let dragging=false, startY=0, startTy=0, lastV=count;
 
   function curTranslate(){
-    const m = /translateX\(([-0-9.]+)px\)/.exec(track.style.transform);
+    const m = /translateY\(([-0-9.]+)px\)/.exec(track.style.transform);
     return m ? parseFloat(m[1]) : valueToTranslate(count);
   }
-  function pointer(e){ return e.touches ? e.touches[0].clientX : e.clientX; }
+  function pointerY(e){ return e.touches ? e.touches[0].clientY : e.clientY; }
 
   function down(e){
-    dragging=true; startX=pointer(e); startTx=curTranslate();
+    dragging=true; startY=pointerY(e); startTy=curTranslate();
     track.style.transition="none";
     lastV=count;
   }
   function move(e){
     if(!dragging) return;
     e.preventDefault();
-    const dx = pointer(e) - startX;
-    let tx = startTx + dx;
-    // live value from translate (free drag)
-    let v = Math.round((ruler.clientWidth/2 - tx)/SPACING);
-    v = Math.min(RULER_MAX, Math.max(RULER_MIN, v));
-    track.style.transform = "translateX(" + tx + "px)";
+    const dy = pointerY(e) - startY;
+    let ty = startTy + dy;
+    // value from translate (free drag, dragging down -> lower numbers)
+    let v = Math.round((wheel.clientHeight/2 - ty)/ITEM_H - 0.5) + REP_MIN;
+    v = Math.min(REP_MAX, Math.max(REP_MIN, v));
+    track.style.transform = "translateY(" + ty + "px)";
     if(v !== lastV){
       lastV = v; count = v;
-      valEl.childNodes[0].nodeValue = v;
-      valEl.classList.add("pop"); setTimeout(()=>valEl.classList.remove("pop"),80);
+      styleWheel(v);
+      const sel = track.children[v-REP_MIN];
+      if(sel){ sel.classList.add("pop"); setTimeout(()=>sel.classList.remove("pop"),80); }
       buzz(7); // mechanical notch
       updateKcal();
     }
@@ -518,14 +514,16 @@ function updateKcal(){
   function up(){
     if(!dragging) return;
     dragging=false;
-    setRulerValue(count, true); // snap to exact tick
+    setReps(count, true); // snap to centre
   }
-  ruler.addEventListener("mousedown",down);
+  wheel.addEventListener("mousedown",down);
   window.addEventListener("mousemove",move);
   window.addEventListener("mouseup",up);
-  ruler.addEventListener("touchstart",down,{passive:false});
-  ruler.addEventListener("touchmove",move,{passive:false});
-  ruler.addEventListener("touchend",up);
+  wheel.addEventListener("touchstart",down,{passive:false});
+  wheel.addEventListener("touchmove",move,{passive:false});
+  wheel.addEventListener("touchend",up);
+  // scroll wheel on desktop for convenience
+  wheel.addEventListener("wheel",e=>{ e.preventDefault(); setReps(count + (e.deltaY>0?1:-1), true); }, {passive:false});
 })();
 
 $("#saveBtn").addEventListener("click",()=>{
@@ -735,12 +733,12 @@ $("#resetBtn").addEventListener("click",()=>{
 
 /* ---------------- Init ---------------- */
 renderCarousel();
-buildRuler();
+buildWheel();
 const startReps = state.lastReps[state.exercises[selectedIdx].id] || 10;
-window.addEventListener("load",()=>{ setRulerValue(startReps,false); });
-setRulerValue(startReps,false);
+window.addEventListener("load",()=>{ setReps(startReps,false); });
+setReps(startReps,false);
 updateTodayPill();
-window.addEventListener("resize",()=>setRulerValue(count,false));
+window.addEventListener("resize",()=>setReps(count,false));
 </script>
 </body>
 </html>
