@@ -572,7 +572,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.12";
+const APP_VERSION = "2026-06-07.13";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -760,27 +760,32 @@ function scheduleCloudPush(){ if(!syncReady()) return; clearTimeout(_pushT); _pu
 /* ---------------- Friends / leaderboard ---------------- */
 const FRIENDS_TABLE = "doitnow_friends";
 function friendsReady(){ return syncReady() && state.profile && state.profile.group && state.profile.name; }
+function postFriend(rows){
+  return fetch(`${sync.url}/rest/v1/${FRIENDS_TABLE}`, {
+    method:"POST",
+    headers: Object.assign(cloudHeaders(), { "Prefer":"resolution=merge-duplicates,return=minimal" }),
+    body: JSON.stringify(rows)
+  });
+}
 async function publishFriend(){
   if(!friendsReady()) return;
+  const mc = medalCounts();
+  const base = {
+    grp: state.profile.group,
+    uid: state.userId,
+    name: state.profile.name,
+    streak: computeStreak(),
+    total: Math.round(state.logs.reduce((s,l)=>s+l.kcal,0)),
+    weeks: weeklyKcalMap(),
+    wins: mc.g,
+    updated_at: new Date().toISOString()
+  };
   try{
-    const mc = medalCounts();
-    const row = [{
-      grp: state.profile.group,
-      uid: state.userId,
-      name: state.profile.name,
-      streak: computeStreak(),
-      total: Math.round(state.logs.reduce((s,l)=>s+l.kcal,0)),
-      weeks: weeklyKcalMap(),
-      wins: mc.g,
-      medals: mc,
-      updated_at: new Date().toISOString()
-    }];
-    await fetch(`${sync.url}/rest/v1/${FRIENDS_TABLE}`, {
-      method:"POST",
-      headers: Object.assign(cloudHeaders(), { "Prefer":"resolution=merge-duplicates,return=minimal" }),
-      body: JSON.stringify(row)
-    });
-  }catch(e){}
+    let res = await postFriend([Object.assign({}, base, { medals: mc })]);
+    if(!res.ok){ await postFriend([base]); } // table may not have the `medals` column yet
+  }catch(e){
+    try{ await postFriend([base]); }catch(e2){}
+  }
 }
 async function fetchFriends(){
   if(!friendsReady()) return [];
