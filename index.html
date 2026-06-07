@@ -52,7 +52,7 @@
   /* Views */
   .view{display:none;animation:fade .25s ease}
   .view.active{display:block}
-  #view-stats, #view-cal, #view-set{padding-top:calc(env(safe-area-inset-top) + 16px)}
+  #view-stats, #view-cal, #view-set, #view-friends{padding-top:calc(env(safe-area-inset-top) + 16px)}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
@@ -177,9 +177,33 @@
     padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);
     display:flex;justify-content:space-around;
   }
-  .tab{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10.5px;padding:4px 14px;transition:.15s}
+  .tab{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font-size:10px;padding:4px 6px;transition:.15s;flex:1}
   .tab .ico{font-size:22px}
   .tab.active{color:var(--accent)}
+  /* highlighted center "Pridať" button */
+  .tab.center{position:relative}
+  .tab.center .ico{
+    width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;font-size:26px;font-weight:700;
+    margin-top:-22px;box-shadow:0 6px 16px rgba(255,107,53,.45);border:3px solid var(--bg)
+  }
+  .tab.center.active{color:var(--accent)}
+
+  /* Friends / leaderboard */
+  .profile-strip{display:flex;align-items:center;justify-content:space-between}
+  .ps-name{font-weight:800;font-size:18px}
+  .ps-stats{display:flex;gap:16px;font-size:15px;color:var(--muted)}
+  .ps-stats b{font-size:17px}
+  .ps-flame b{color:var(--accent)}
+  .ps-badge b{color:var(--accent2)}
+  .lb-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:var(--card)}
+  .lb-row.me{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .lb-rank{font-size:20px;min-width:30px;text-align:center;font-weight:800;color:var(--muted)}
+  .lb-info{flex:1;min-width:0}
+  .lb-name{font-weight:600;font-size:15px}
+  .lb-wins{font-size:12px;color:var(--accent2);margin-left:6px}
+  .lb-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .lb-kcal{font-weight:800;color:var(--accent2);font-size:15px;white-space:nowrap}
 
   /* Toast */
   .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:var(--green);color:#06231a;padding:12px 22px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:100;box-shadow:var(--shadow)}
@@ -222,6 +246,37 @@
     </div>
     <div class="section-title">Podľa cviku</div>
     <div id="statsByEx"></div>
+  </section>
+
+  <!-- FRIENDS -->
+  <section class="view" id="view-friends">
+    <div id="friendsSetup" style="display:none">
+      <div class="card">
+        <div class="section-title">👥 Priatelia</div>
+        <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 2px 14px">
+          Spoj sa s priateľmi cez spoločný <b>skupinový kód</b> a súťažte v rebríčku podľa kcal. Každý má vlastný save, ale rovnaký skupinový kód vás dá do jedného rebríčka.
+        </p>
+        <div class="field"><label>Tvoje meno</label><input type="text" id="frName" placeholder="napr. Denis"></div>
+        <div class="field"><label>Skupinový kód (rovnaký pre všetkých priateľov)</label><input type="text" id="frGroup" placeholder="napr. partia-2026" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <button class="btn" id="frJoin">👥 Pripojiť sa</button>
+        <div id="frSetupNote" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
+      </div>
+    </div>
+    <div id="friendsMain" style="display:none">
+      <div class="card profile-strip">
+        <div class="ps-name" id="frMe">—</div>
+        <div class="ps-stats">
+          <span class="ps-flame">🔥 <b id="frStreak">0</b></span>
+          <span class="ps-badge">🥇 <b id="frWins">0</b></span>
+        </div>
+      </div>
+      <div class="range-chips" id="frTabs">
+        <button class="rchip active" data-fr="week">Tento týždeň</button>
+        <button class="rchip" data-fr="total">Celkovo</button>
+      </div>
+      <div id="leaderboard"></div>
+      <button class="btn ghost" id="frEdit" style="margin-top:6px">⚙️ Zmeniť meno / skupinu</button>
+    </div>
   </section>
 
   <!-- CALENDAR -->
@@ -332,10 +387,11 @@
 </div>
 
 <nav class="tabbar">
-  <button class="tab active" data-view="add"><span class="ico">➕</span>Pridať</button>
-  <button class="tab" data-view="stats"><span class="ico">📊</span>Štatistiky</button>
+  <button class="tab" data-view="friends"><span class="ico">👥</span>Priatelia</button>
+  <button class="tab" data-view="stats"><span class="ico">📊</span>Štaty</button>
+  <button class="tab center active" data-view="add"><span class="ico">➕</span>Pridať</button>
   <button class="tab" data-view="cal"><span class="ico">📅</span>Kalendár</button>
-  <button class="tab" data-view="set"><span class="ico">⚙️</span>Nastavenia</button>
+  <button class="tab" data-view="set"><span class="ico">⚙️</span>Viac</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -359,13 +415,18 @@ function load(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){ const s = JSON.parse(raw); return migrate(s); }
   }catch(e){}
-  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[], lastReps:{}, updatedAt:0 };
+  return { weight:90, exercises:DEFAULT_EXERCISES, logs:[], lastReps:{}, updatedAt:0,
+           userId:newId(), profile:{ name:"", group:"", wins:{} } };
 }
+function newId(){ return "u-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
 function migrate(s){
   s.weight = s.weight || 90;
   s.logs = s.logs || [];
   s.lastReps = s.lastReps || {};
   s.updatedAt = s.updatedAt || 0;
+  s.userId = s.userId || newId();
+  s.profile = s.profile || { name:"", group:"", wins:{} };
+  s.profile.wins = s.profile.wins || {};
   // Seed defaults only on a truly fresh list; otherwise honour the user's list
   // (so deleted exercises stay deleted). Backfill any missing fields per item.
   let list = (Array.isArray(s.exercises) && s.exercises.length) ? s.exercises.slice() : DEFAULT_EXERCISES.map(e=>({...e}));
@@ -415,6 +476,34 @@ function kcalFor(ex, reps){
   return ex.met * state.weight * hours;
 }
 function fmt(n){ return Math.round(n); }
+
+// ISO week key, e.g. "2026-W23"
+function weekKey(dt){
+  const d = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+  const day = (d.getUTCDay()+6)%7;          // Mon=0
+  d.setUTCDate(d.getUTCDate()-day+3);        // Thursday of this ISO week
+  const firstThu = new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  const week = 1 + Math.round(((d-firstThu)/86400000 - 3 + ((firstThu.getUTCDay()+6)%7))/7);
+  return d.getUTCFullYear()+"-W"+String(week).padStart(2,"0");
+}
+function prevWeekKey(){ const d=new Date(); d.setDate(d.getDate()-7); return weekKey(d); }
+// consecutive days ending today (or yesterday if today not done yet) with ≥1 set
+function computeStreak(){
+  const days = new Set(state.logs.map(l=>l.ts.slice(0,10)));
+  let d = new Date(), n = 0;
+  if(!days.has(dayKey(d))) d.setDate(d.getDate()-1);
+  while(days.has(dayKey(d))){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+// kcal grouped by ISO week, last 8 weeks only
+function weeklyKcalMap(){
+  const m = {};
+  state.logs.forEach(l=>{ const wk = weekKey(new Date(l.ts)); m[wk] = (m[wk]||0)+l.kcal; });
+  const out = {};
+  Object.keys(m).sort().slice(-8).forEach(k=> out[k] = Math.round(m[k]));
+  return out;
+}
+function winCount(){ return state.profile && state.profile.wins ? Object.keys(state.profile.wins).length : 0; }
 
 function toast(msg){
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
@@ -470,7 +559,37 @@ async function cloudPull(adoptAlways){
   }catch(e){ setSyncStatus("⚠️ Sync zlyhal: "+e.message); }
 }
 let _pushT;
-function scheduleCloudPush(){ if(!syncReady()) return; clearTimeout(_pushT); _pushT = setTimeout(cloudPush, 1500); }
+function scheduleCloudPush(){ if(!syncReady()) return; clearTimeout(_pushT); _pushT = setTimeout(()=>{ cloudPush(); publishFriend(); }, 1500); }
+
+/* ---------------- Friends / leaderboard ---------------- */
+const FRIENDS_TABLE = "doitnow_friends";
+function friendsReady(){ return syncReady() && state.profile && state.profile.group && state.profile.name; }
+async function publishFriend(){
+  if(!friendsReady()) return;
+  try{
+    const row = [{
+      grp: state.profile.group,
+      uid: state.userId,
+      name: state.profile.name,
+      streak: computeStreak(),
+      total: Math.round(state.logs.reduce((s,l)=>s+l.kcal,0)),
+      weeks: weeklyKcalMap(),
+      wins: winCount(),
+      updated_at: new Date().toISOString()
+    }];
+    await fetch(`${sync.url}/rest/v1/${FRIENDS_TABLE}`, {
+      method:"POST",
+      headers: Object.assign(cloudHeaders(), { "Prefer":"resolution=merge-duplicates,return=minimal" }),
+      body: JSON.stringify(row)
+    });
+  }catch(e){}
+}
+async function fetchFriends(){
+  if(!friendsReady()) return [];
+  const res = await fetch(`${sync.url}/rest/v1/${FRIENDS_TABLE}?grp=eq.${encodeURIComponent(state.profile.group)}&select=*`, { headers: cloudHeaders() });
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return await res.json();
+}
 
 function refreshAll(){
   renderDeck();
@@ -486,6 +605,7 @@ $$(".tab").forEach(tab=>{
     const v = tab.dataset.view;
     $$(".tab").forEach(t=>t.classList.toggle("active", t===tab));
     $$(".view").forEach(s=>s.classList.toggle("active", s.id==="view-"+v));
+    if(v==="friends") renderFriends();
     if(v==="stats") renderStats();
     if(v==="cal") renderCalendar();
     if(v==="set") renderSettings();
@@ -647,6 +767,86 @@ function renderStats(){
 }
 $$("#rangeChips .rchip").forEach(c=>{
   c.addEventListener("click",()=>{ curRange = c.dataset.r; renderStats(); });
+});
+
+/* ---------------- FRIENDS view ---------------- */
+let frMode = "week";
+async function renderFriends(){
+  const setup = $("#friendsSetup"), main = $("#friendsMain");
+  if(!friendsReady()){
+    setup.style.display = ""; main.style.display = "none";
+    $("#frName").value = (state.profile.name||"");
+    $("#frGroup").value = (state.profile.group||"");
+    $("#frSetupNote").textContent = syncReady() ? "" : "⚠️ Najprv nastav Cloud synchronizáciu v sekcii Viac.";
+    return;
+  }
+  setup.style.display = "none"; main.style.display = "";
+  $("#frMe").textContent = state.profile.name;
+  $("#frStreak").textContent = computeStreak();
+  $("#frWins").textContent = winCount();
+  const lb = $("#leaderboard");
+  lb.innerHTML = `<div class="empty">Načítavam…</div>`;
+  try{
+    await publishFriend();
+    const rows = await fetchFriends();
+    checkWeeklyWin(rows);
+    renderLeaderboard(rows);
+  }catch(e){ lb.innerHTML = `<div class="empty"><span class="big">⚠️</span>Nepodarilo sa načítať rebríček.<br>${e.message}</div>`; }
+}
+function renderLeaderboard(rows){
+  const cur = weekKey(new Date());
+  const val = r => frMode==="week" ? ((r.weeks && r.weeks[cur]) ? r.weeks[cur] : 0) : (r.total||0);
+  rows = rows.slice().sort((a,b)=>val(b)-val(a));
+  const lb = $("#leaderboard");
+  if(!rows.length){ lb.innerHTML = `<div class="empty"><span class="big">👥</span>Zatiaľ nikto. Pošli priateľom rovnaký skupinový kód.</div>`; return; }
+  const medals = ["🥇","🥈","🥉"];
+  lb.innerHTML = "";
+  rows.forEach((r,i)=>{
+    const me = r.uid===state.userId;
+    const rank = medals[i] || (i+1)+".";
+    const el = document.createElement("div");
+    el.className = "lb-row" + (me?" me":"");
+    el.innerHTML = `<span class="lb-rank">${rank}</span>
+      <div class="lb-info">
+        <div class="lb-name">${r.name||"?"}${me?" (ty)":""}${r.wins?`<span class="lb-wins">🥇${r.wins}</span>`:""}</div>
+        <div class="lb-sub">🔥 ${r.streak||0} dní v rade</div>
+      </div>
+      <span class="lb-kcal">${fmt(val(r))} kcal</span>`;
+    lb.appendChild(el);
+  });
+}
+// each user self-awards a badge if they won the just-finished week
+function checkWeeklyWin(rows){
+  const lw = prevWeekKey();
+  const scored = rows.map(r=>({ uid:r.uid, k:(r.weeks && r.weeks[lw]) ? r.weeks[lw] : 0 }));
+  const mine = (scored.find(s=>s.uid===state.userId)||{k:0}).k;
+  if(mine<=0 || state.profile.wins[lw]) return;
+  const top = Math.max(...scored.map(s=>s.k));
+  const ties = scored.filter(s=>s.k===top).length;
+  if(mine===top && ties===1){
+    state.profile.wins[lw] = true; save();
+    $("#frWins").textContent = winCount();
+    toast("🥇 Vyhral si minulý týždeň!");
+    publishFriend();
+  }
+}
+$$("#frTabs .rchip").forEach(c=>{
+  c.addEventListener("click",()=>{ frMode = c.dataset.fr; $$("#frTabs .rchip").forEach(x=>x.classList.toggle("active",x===c)); renderFriends(); });
+});
+$("#frJoin").addEventListener("click",()=>{
+  const name = $("#frName").value.trim();
+  const group = $("#frGroup").value.trim();
+  if(!syncReady()){ toast("Najprv nastav Cloud sync (Viac)"); return; }
+  if(!name){ toast("Zadaj svoje meno"); return; }
+  if(!group){ toast("Zadaj skupinový kód"); return; }
+  state.profile.name = name; state.profile.group = group;
+  save(); toast("Pripojené 👥"); renderFriends();
+});
+$("#frEdit").addEventListener("click",()=>{
+  $("#friendsMain").style.display = "none";
+  $("#friendsSetup").style.display = "";
+  $("#frName").value = state.profile.name || "";
+  $("#frGroup").value = state.profile.group || "";
 });
 
 /* ---------------- CALENDAR view ---------------- */
