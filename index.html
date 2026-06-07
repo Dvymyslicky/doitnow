@@ -81,7 +81,7 @@
 
   /* ---------- Single big number scrubber ---------- */
   .numwrap{flex:0 0 auto;width:100%;display:flex;align-items:center;justify-content:center;margin-top:14px}
-  .numruler{position:relative;flex:1;min-width:0;height:260px;overflow:hidden;touch-action:pan-y;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
+  .numruler{position:relative;flex:1;min-width:0;height:260px;overflow:hidden;touch-action:none;user-select:none;cursor:grab;display:flex;align-items:center;justify-content:center}
   .numruler:active{cursor:grabbing}
   .numval{font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);font-size:250px;line-height:1;will-change:transform;white-space:nowrap}
   /* stopwatch (timed exercises) */
@@ -109,10 +109,7 @@
   .rchip{flex:0 0 auto;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:9px 16px;font-size:14px;cursor:pointer;transition:.15s}
   .rchip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;border-color:transparent;font-weight:700}
 
-  /* Stats: per-exercise (max ~5 visible, then scrolls in its own box) */
-  #statsByEx{max-height:348px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-  #statsByEx::-webkit-scrollbar{width:6px}
-  #statsByEx::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+  /* Stats: per-exercise */
   .exstat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
   .exstat .top{display:flex;align-items:center;gap:10px}
   .exstat .emoji{font-size:20px}
@@ -572,7 +569,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.14";
+const APP_VERSION = "2026-06-07.15";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -903,21 +900,13 @@ function makeRuler(ruler, valEl, ex, lkEl){
   }
   valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value));
 
-  let dragging=false, startX=0, startY=0, startVal=value, axis=null;
+  let dragging=false, startX=0, startVal=value;
   const px = e => e.touches ? e.touches[0].clientX : e.clientX;
-  const py = e => e.touches ? e.touches[0].clientY : e.clientY;
-  function down(e){ dragging=true; startX=px(e); startY=py(e); startVal=value; axis=null; valEl.style.transition="none"; }
+  function down(e){ dragging=true; startX=px(e); startVal=value; valEl.style.transition="none"; }
   function move(e){
     if(!dragging) return;
-    const x = px(e), y = py(e);
-    if(axis===null){
-      const adx = Math.abs(x-startX), ady = Math.abs(y-startY);
-      if(adx < 6 && ady < 6) return;            // not enough movement yet
-      axis = adx > ady ? "h" : "v";
-      if(axis === "v"){ dragging = false; return; } // vertical → let the deck scroll between exercises
-    }
-    e.preventDefault();                          // horizontal → scrub the number
-    const dx = x - startX;
+    e.preventDefault();
+    const dx = px(e) - startX;
     const steps = Math.round(dx/STEP);
     const v = clamp(startVal - steps);          // reversed direction
     let rem = dx - steps*STEP;                   // fluid nudge with the finger
@@ -987,22 +976,35 @@ function renderStats(){
   const box = $("#statsByEx");
   if(!rows.length){ box.innerHTML = `<div class="empty"><span class="big">📊</span>Za toto obdobie žiadne tréningy.</div>`; return; }
   box.innerHTML = "";
-  rows.forEach(a=>{
+  const LIMIT = 5;
+  const shown = statsExpanded ? rows : rows.slice(0, LIMIT);
+  shown.forEach(a=>{
     const el = document.createElement("div");
     el.className = "exstat";
+    const subTxt = a.ex.timed ? `${a.reps}s · ${a.sets} ${a.sets===1?"set":"setov"}`
+                              : `${a.reps}× opakovaní · ${a.sets} ${a.sets===1?"set":"setov"}`;
     el.innerHTML = `
       <div class="top">
         <span class="emoji">${a.ex.emoji}</span>
         <span class="nm">${a.ex.name}</span>
         <span class="kc">${fmt(a.kcal)} kcal</span>
       </div>
-      <div class="sub">${a.reps}× opakovaní · ${a.sets} ${a.sets===1?"set":"setov"}</div>
+      <div class="sub">${subTxt}</div>
       <div class="bar"><i style="width:${Math.max(4, a.kcal/maxK*100)}%"></i></div>`;
     box.appendChild(el);
   });
+  if(rows.length > LIMIT){
+    const btn = document.createElement("button");
+    btn.className = "btn ghost";
+    btn.style.marginTop = "4px";
+    btn.textContent = statsExpanded ? "Zobraziť menej" : `Zobraziť viac (${rows.length - LIMIT})`;
+    btn.addEventListener("click",()=>{ statsExpanded = !statsExpanded; renderStats(); });
+    box.appendChild(btn);
+  }
 }
+let statsExpanded = false;
 $$("#rangeChips .rchip").forEach(c=>{
-  c.addEventListener("click",()=>{ curRange = c.dataset.r; renderStats(); });
+  c.addEventListener("click",()=>{ curRange = c.dataset.r; statsExpanded = false; renderStats(); });
 });
 
 /* ---------------- PROFILE view (personal + stats + calendar) ---------------- */
