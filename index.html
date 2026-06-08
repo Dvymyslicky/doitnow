@@ -343,8 +343,8 @@
     </div>
     <div id="friendsMain" style="display:none">
       <div class="range-chips" id="frTabs">
-        <button class="rchip active" data-fr="week">Tento týždeň</button>
-        <button class="rchip" data-fr="total">Celkovo</button>
+        <button class="rchip active" data-fr="total">Celkovo</button>
+        <button class="rchip" data-fr="week">Tento týždeň</button>
       </div>
       <div id="leaderboard"></div>
       <button class="btn ghost" id="frEdit" style="margin-top:6px">⚙️ Zmeniť skupinu</button>
@@ -609,7 +609,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-07.24";
+const APP_VERSION = "2026-06-08.1";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -1094,7 +1094,7 @@ function renderProfile(){
 }
 
 /* ---------------- FRIENDS view ---------------- */
-let frMode = "week";
+let frMode = "total";   // default: accumulating total (weekly reset comes later)
 async function renderFriends(){
   const setup = $("#friendsSetup"), main = $("#friendsMain");
   if(!friendsReady()){
@@ -1105,6 +1105,7 @@ async function renderFriends(){
     return;
   }
   setup.style.display = "none"; main.style.display = "";
+  $$("#frTabs .rchip").forEach(c=>c.classList.toggle("active", c.dataset.fr===frMode));
   const lb = $("#leaderboard");
   lb.innerHTML = `<div class="empty">Načítavam…</div>`;
   try{
