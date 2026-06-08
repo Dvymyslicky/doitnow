@@ -610,7 +610,7 @@ const EXERCISE_DB = [
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-06-08.3";
+const APP_VERSION = "2026-06-08.4";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -1012,7 +1012,10 @@ function updateTodayPill(){
 }
 
 /* ---------------- STATS view ---------------- */
-let curRange = "all";
+const PREFS_KEY = "doitnow.prefs";
+let prefs = (()=>{ try{ return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; }catch(e){ return {}; } })();
+function savePrefs(){ try{ localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }catch(e){} }
+let curRange = prefs.range || "all";   // remembered between sessions
 // returns {logs, label, days} for the selected range
 function logsForRange(r){
   const now = new Date();
@@ -1080,7 +1083,7 @@ function renderStats(){
 }
 let statsExpanded = false;
 $$("#rangeChips .rchip").forEach(c=>{
-  c.addEventListener("click",()=>{ curRange = c.dataset.r; statsExpanded = false; renderStats(); });
+  c.addEventListener("click",()=>{ curRange = c.dataset.r; prefs.range = curRange; savePrefs(); statsExpanded = false; renderStats(); });
 });
 
 /* ---------------- PROFILE view (personal + stats + calendar) ---------------- */
