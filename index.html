@@ -495,6 +495,19 @@
   </div>
 </div>
 
+<!-- Manual time entry (timed exercises) -->
+<div class="modal-bd" id="manualTimeEditor">
+  <div class="modal">
+    <h3>Zadať čas manuálne</h3>
+    <div class="field">
+      <label>Počet sekúnd</label>
+      <input type="number" id="manualTimeInput" inputmode="numeric" min="0" step="1" placeholder="napr. 45">
+    </div>
+    <button class="btn" id="manualTimeSave">Uložiť</button>
+    <button class="btn ghost" id="manualTimeCancel" style="margin-top:10px">Zrušiť</button>
+  </div>
+</div>
+
 <nav class="tabbar">
   <button class="tab" data-view="friends"><span class="ico">👥</span>Priatelia</button>
   <button class="tab center active" data-view="add"><span class="ico">➕</span>Pridať</button>
@@ -903,6 +916,7 @@ function renderDeck(){
     const control = ex.timed
       ? `<div class="numwrap"><div class="timer"><div class="timer-display">00:00</div></div></div>
          <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2" : ""}</div>
+         <button class="btn ghost manual-time" style="margin-bottom:8px">✍️ Zadať manuálne</button>
          <button class="btn ghost timer-toggle">▶ Štart</button>
          <button class="btn add" style="margin-top:10px">Pridať set 💪</button>`
       : `<div class="numwrap"><div class="numruler"><div class="numval">10</div></div></div>
@@ -926,6 +940,8 @@ function renderDeck(){
       const tapStep = (el,d)=>{ if(!el) return; el.addEventListener("pointerdown",e=>{ e.preventDefault(); ctrl.step(d); }); };
       tapStep(page.querySelector(".sdec"), -1);
       tapStep(page.querySelector(".sinc"), 1);
+    } else {
+      page.querySelector(".manual-time").addEventListener("click",()=>openManualTimeEditor(ctrl));
     }
 
     page.querySelector(".add").addEventListener("click",()=>{
@@ -955,10 +971,29 @@ function makeTimer(displayEl, toggleBtn, lkEl, ex){
   function start(){ running=true; startTs=Date.now(); toggleBtn.textContent="⏸ Stop"; toggleBtn.classList.add("stop"); iv=setInterval(refresh,200); buzz(8); }
   function stop(){ if(!running) return; acc=cur(); running=false; clearInterval(iv); iv=null; toggleBtn.textContent=acc>0?"▶ Pokračovať":"▶ Štart"; toggleBtn.classList.remove("stop"); refresh(); buzz(8); }
   function reset(){ running=false; clearInterval(iv); iv=null; acc=0; toggleBtn.textContent="▶ Štart"; toggleBtn.classList.remove("stop"); refresh(); }
+  function setManual(s){ running=false; clearInterval(iv); iv=null; acc=Math.max(0,s); toggleBtn.textContent=acc>0?"▶ Pokračovať":"▶ Štart"; toggleBtn.classList.remove("stop"); refresh(); }
   toggleBtn.addEventListener("click",()=>{ running ? stop() : start(); });
   refresh();
-  return { value:()=>Math.max(0,Math.round(cur())), afterAdd:reset, reposition:()=>{} };
+  return { value:()=>Math.max(0,Math.round(cur())), afterAdd:reset, reposition:()=>{}, setManual };
 }
+
+/* ---------- Manual time entry (timed exercises) ---------- */
+let manualTimeCtrl = null;
+function openManualTimeEditor(ctrl){
+  manualTimeCtrl = ctrl;
+  $("#manualTimeInput").value = "";
+  $("#manualTimeEditor").classList.add("show");
+  setTimeout(()=>$("#manualTimeInput").focus(), 50);
+}
+function closeManualTimeEditor(){ $("#manualTimeEditor").classList.remove("show"); manualTimeCtrl = null; }
+$("#manualTimeSave").addEventListener("click",()=>{
+  const v = Math.max(0, Math.round(Number($("#manualTimeInput").value) || 0));
+  if(manualTimeCtrl) manualTimeCtrl.setManual(v);
+  closeManualTimeEditor();
+});
+$("#manualTimeCancel").addEventListener("click", closeManualTimeEditor);
+$("#manualTimeEditor").addEventListener("click", e=>{ if(e.target.id==="manualTimeEditor") closeManualTimeEditor(); });
+$("#manualTimeInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#manualTimeSave").click(); });
 
 // Single big number bound to one exercise. Drag to scrub smoothly.
 function makeRuler(ruler, valEl, ex, lkEl){
