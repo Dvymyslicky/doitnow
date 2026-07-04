@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0f1115">
+<meta name="theme-color" content="#050505">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DoItNow">
@@ -12,18 +12,18 @@
 
 <style>
   :root{
-    --bg:#0f1115;
-    --bg2:#171a21;
-    --card:#1c2029;
-    --card2:#232834;
-    --line:#2c3240;
-    --txt:#eef1f6;
-    --muted:#8a91a0;
-    --accent:#ff6b35;
-    --accent2:#ffb142;
-    --green:#22c98a;
-    --blue:#4f8cff;
-    --shadow:0 8px 24px rgba(0,0,0,.35);
+    --bg:#050505;
+    --bg2:#0a0a0a;
+    --card:#0d0d0e;
+    --card2:#141415;
+    --line:#232326;
+    --txt:#f0f0f2;
+    --muted:#75757c;
+    --accent:#f2f2f4;
+    --accent2:#c7c7cc;
+    --green:#a7a8ae;
+    --blue:#48484c;
+    --shadow:0 8px 28px rgba(0,0,0,.6);
     --radius:18px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -56,7 +56,7 @@
   .profile-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
   .profile-head .ph-title{font-size:22px;font-weight:800}
   .icon-btn{width:40px;height:40px;border-radius:12px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .icon-btn:active{background:var(--accent);color:#fff}
+  .icon-btn:active{background:var(--accent);color:var(--bg)}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
@@ -65,7 +65,7 @@
   /* ---------- Exercise deck (vertical presentation pages) ---------- */
   #view-add.active{display:flex;flex-direction:column;position:relative;height:calc(100dvh - 92px - env(safe-area-inset-bottom) / 2)}
   .preset-btn{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:14px;z-index:6;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;max-width:62%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .preset-btn:active{background:var(--accent);color:#fff}
+  .preset-btn:active{background:var(--accent);color:var(--bg)}
   .pickrow{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--card)}
   .pickrow.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   .pickrow .emoji{font-size:20px}
@@ -98,12 +98,12 @@
   /* +/- stepper row */
   .stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:2px}
   .step-btn{width:54px;height:54px;border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:28px;font-weight:300;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.1s;user-select:none}
-  .step-btn:active{background:var(--accent);color:#fff;transform:scale(.9)}
+  .step-btn:active{background:var(--accent);color:var(--bg);transform:scale(.9)}
   /* stopwatch (timed exercises) */
   .timer{display:flex;align-items:center;justify-content:center;width:100%;min-height:200px}
   .timer-display{font-size:104px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);line-height:1}
   .timer-toggle{max-width:380px;margin:0 auto}
-  .btn.stop{background:linear-gradient(135deg,#ff5b5b,#ff8a3d);color:#2a0c05}
+  .btn.stop{background:var(--txt);color:var(--bg)}
 
   .kcal-live{text-align:center;margin:auto 0 12px;font-size:14px;color:var(--muted)}
   .kcal-live b{color:var(--accent2);font-size:18px}
@@ -111,18 +111,18 @@
 
   .btn{
     width:100%;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;transition:.15s;box-shadow:var(--shadow)
+    background:var(--accent);color:var(--bg);transition:.15s;box-shadow:var(--shadow)
   }
-  .btn:active{transform:scale(.98);filter:brightness(1.05)}
-  .btn:disabled{opacity:.4;filter:grayscale(.5)}
+  .btn:active{transform:scale(.98);filter:brightness(.92)}
+  .btn:disabled{opacity:.35}
   .btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
-  .btn.danger{background:var(--card2);color:#ff6b6b;border:1px solid var(--line)}
+  .btn.danger{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
 
   /* Stats: range chips */
   .range-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
   .range-chips::-webkit-scrollbar{display:none}
   .rchip{flex:0 0 auto;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:9px 16px;font-size:14px;cursor:pointer;transition:.15s}
-  .rchip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;border-color:transparent;font-weight:700}
+  .rchip.active{background:var(--accent);color:var(--bg);border-color:transparent;font-weight:700}
 
   /* Stats: per-exercise */
   .exstat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
@@ -132,7 +132,7 @@
   .exstat .kc{color:var(--accent2);font-weight:700;font-size:14px;white-space:nowrap}
   .exstat .sub{font-size:12px;color:var(--muted);margin-top:3px}
   .exstat .bar{height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-top:9px}
-  .exstat .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px;transition:width .3s}
+  .exstat .bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .3s}
 
   /* stat cards */
   .stat-row{display:flex;gap:10px;margin-bottom:14px}
@@ -150,7 +150,6 @@
   .log-item .kcal{font-weight:700;color:var(--accent2);font-size:14px;white-space:nowrap}
   .log-item .del{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 6px}
   .empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px}
-  .empty .big{font-size:40px;display:block;margin-bottom:8px}
 
   /* Calendar */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -166,11 +165,11 @@
   .cal-day .dn{font-size:13px;font-weight:600}
   .cal-day .dk{font-size:9px;color:var(--accent2);font-weight:700;margin-top:1px}
   .cal-day.today{border-color:var(--blue)}
-  .cal-day.has{background:linear-gradient(145deg,#1a2620,#1c2029)}
+  .cal-day.has{background:linear-gradient(145deg,#16171a,var(--card))}
   .cal-day.sel{box-shadow:0 0 0 2px var(--accent) inset;border-color:var(--accent)}
-  .heat1{box-shadow:0 0 0 1px rgba(34,201,138,.3) inset}
-  .heat2{box-shadow:0 0 0 1px rgba(34,201,138,.6) inset}
-  .heat3{box-shadow:0 0 0 2px rgba(34,201,138,.9) inset}
+  .heat1{box-shadow:0 0 0 1px rgba(255,255,255,.18) inset}
+  .heat2{box-shadow:0 0 0 1px rgba(255,255,255,.4) inset}
+  .heat3{box-shadow:0 0 0 2px rgba(255,255,255,.78) inset}
 
   /* Settings */
   .field{margin-bottom:14px}
@@ -185,10 +184,11 @@
   .met-row .nm{flex:1;font-size:14px}
   .met-row input{width:64px;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:8px;text-align:center;font-size:15px}
   .met-row .unit{font-size:11px;color:var(--muted);width:34px}
-  .met-row .del{background:none;border:none;color:#ff6b6b;font-size:18px;cursor:pointer;padding:2px 4px;line-height:1}
+  .met-row .del{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 4px;line-height:1}
   .exrow{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--card);transition:.12s}
   .exrow:active{background:var(--card2)}
   .exrow .emoji{font-size:24px}
+  .emoji, .page-emoji, #exEmoji{filter:grayscale(1) contrast(1.05) brightness(1.1)}
   .exrow .info{flex:1;min-width:0}
   .exrow .nm{font-weight:600;font-size:15px}
   .exrow .sub{font-size:12px;color:var(--muted);margin-top:2px}
@@ -199,7 +199,7 @@
   /* Tabbar */
   .tabbar{
     position:fixed;left:0;right:0;bottom:0;z-index:50;
-    background:rgba(15,17,21,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+    background:rgba(5,6,10,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);
     padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);
     display:flex;justify-content:space-around;
   }
@@ -210,8 +210,8 @@
   .tabbar{overflow:visible}
   .tab.center .ico{
     width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1205;font-size:30px;font-weight:700;
-    margin-top:-28px;box-shadow:0 6px 18px rgba(255,107,53,.5);border:4px solid var(--bg)
+    background:var(--accent);color:var(--bg);font-size:30px;font-weight:700;
+    margin-top:-28px;box-shadow:0 6px 20px rgba(255,255,255,.16);border:4px solid var(--bg)
   }
   .tab.center{color:var(--accent)}
 
@@ -222,9 +222,13 @@
   .ps-stats b{font-size:17px}
   .ps-flame b{color:var(--accent)}
   .ps-badge b{color:var(--accent2)}
+  .ps-badge.rank-g b{color:var(--accent)}
+  .ps-badge.rank-b b{color:var(--muted)}
   .lb-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:var(--card)}
   .lb-row.me{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
   .lb-rank{font-size:20px;min-width:30px;text-align:center;font-weight:800;color:var(--muted)}
+  .lb-row.top-1 .lb-rank{color:var(--accent)}
+  .lb-row.top-2 .lb-rank{color:var(--txt)}
   .lb-info{flex:1;min-width:0}
   .lb-name{font-weight:600;font-size:15px}
   .lb-wins{font-size:12px;color:var(--accent2);margin-left:6px}
@@ -232,7 +236,7 @@
   .lb-kcal{font-weight:800;color:var(--accent2);font-size:15px;white-space:nowrap}
 
   /* Toast */
-  .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:var(--green);color:#06231a;padding:12px 22px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:100;box-shadow:var(--shadow)}
+  .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:var(--accent);color:var(--bg);padding:12px 22px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:100;box-shadow:var(--shadow)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   .modal-bd{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90;display:none;align-items:flex-end;justify-content:center}
@@ -247,7 +251,7 @@
 
   /* Full-screen "set added" animation */
   .addfx{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 50% 42%, rgba(255,107,53,.28), rgba(15,17,21,.94));
+    background:radial-gradient(circle at 50% 42%, rgba(255,255,255,.14), rgba(5,5,5,.94));
     -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
   .addfx.show{display:flex}
   .addfx.hide{animation:fxOut .28s ease forwards}
@@ -256,7 +260,7 @@
   .addfx-ring{position:absolute;left:50%;top:46px;width:140px;height:140px;margin-left:-70px;border-radius:50%;
     border:4px solid var(--accent);transform:translateY(-50%);animation:fxRing .7s ease-out forwards;opacity:0}
   @keyframes fxRing{0%{transform:translateY(-50%) scale(.3);opacity:.9}100%{transform:translateY(-50%) scale(2.2);opacity:0}}
-  .addfx-emoji{font-size:120px;line-height:1;animation:fxPop .55s cubic-bezier(.2,1.5,.4,1)}
+  .addfx-emoji{font-size:120px;line-height:1;animation:fxPop .55s cubic-bezier(.2,1.5,.4,1);filter:grayscale(1) contrast(1.05) brightness(1.1)}
   @keyframes fxPop{0%{transform:scale(0) rotate(-20deg);opacity:0}60%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1) rotate(0);opacity:1}}
   .addfx-big{font-size:72px;font-weight:800;color:var(--accent2);margin-top:4px;animation:fxUp .4s .1s both ease}
   .addfx-kcal{font-size:22px;color:var(--txt);margin-top:2px;animation:fxUp .4s .18s both ease}
@@ -268,7 +272,7 @@
 <div class="app">
   <!-- ADD -->
   <section class="view active" id="view-add">
-    <button id="presetBtn" class="preset-btn">🗂 Všetky ▾</button>
+    <button id="presetBtn" class="preset-btn">Všetky ▾</button>
     <div class="deck" id="deck"></div>
   </section>
 
@@ -276,16 +280,16 @@
   <section class="view" id="view-profile">
     <div class="profile-head">
       <div class="ph-title">Profil</div>
-      <button class="icon-btn" id="openSettings" aria-label="Nastavenia">⚙️</button>
+      <button class="icon-btn" id="openSettings" aria-label="Nastavenia"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a8 8 0 0 0 0-2l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L15 3.5h-4l-.3 2.6a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a8 8 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 1.7 1l.3 2.6h4l.3-2.6a8 8 0 0 0 1.7-1l2.4 1 2-3.4z"/></svg></button>
     </div>
 
     <div class="card profile-strip">
       <div class="ps-name" id="pfName">Tvoj profil</div>
       <div class="ps-stats">
-        <span class="ps-flame">🔥 <b id="pfStreak">0</b></span>
-        <span class="ps-badge">🥇 <b id="pfG">0</b></span>
-        <span class="ps-badge">🥈 <b id="pfS">0</b></span>
-        <span class="ps-badge">🥉 <b id="pfB">0</b></span>
+        <span class="ps-flame">Séria <b id="pfStreak">0</b></span>
+        <span class="ps-badge rank-g">1. <b id="pfG">0</b></span>
+        <span class="ps-badge">2. <b id="pfS">0</b></span>
+        <span class="ps-badge rank-b">3. <b id="pfB">0</b></span>
       </div>
     </div>
 
@@ -333,12 +337,12 @@
   <section class="view" id="view-friends">
     <div id="friendsSetup" style="display:none">
       <div class="card">
-        <div class="section-title">👥 Priatelia</div>
+        <div class="section-title">Priatelia</div>
         <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 2px 14px">
           Spoj sa s priateľmi cez spoločný <b>skupinový kód</b> a súťažte v rebríčku podľa kcal. Každý má vlastný save, ale rovnaký skupinový kód vás dá do jedného rebríčka.
         </p>
         <div class="field"><label>Skupinový kód (rovnaký pre všetkých priateľov)</label><input type="text" id="frGroup" placeholder="napr. partia-2026" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
-        <button class="btn" id="frJoin">👥 Pripojiť sa</button>
+        <button class="btn" id="frJoin">Pripojiť sa</button>
         <div id="frSetupNote" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
       </div>
     </div>
@@ -348,7 +352,7 @@
         <button class="rchip" data-fr="week">Tento týždeň</button>
       </div>
       <div id="leaderboard"></div>
-      <button class="btn ghost" id="frEdit" style="margin-top:6px">⚙️ Zmeniť skupinu</button>
+      <button class="btn ghost" id="frEdit" style="margin-top:6px">Zmeniť skupinu</button>
     </div>
   </section>
 
@@ -373,7 +377,7 @@
     <div class="card">
       <div class="section-title">Cviky</div>
       <div id="exList"></div>
-      <button class="btn ghost" id="addExBtn" style="margin-top:6px">➕ Pridať cvik</button>
+      <button class="btn ghost" id="addExBtn" style="margin-top:6px">Pridať cvik</button>
       <p style="font-size:11.5px;color:var(--muted);margin:12px 2px 0;line-height:1.5">
         Ťukni na cvik pre úpravu alebo zmazanie. Kalórie = MET × váha(kg) × čas(h); čas sa odhaduje z počtu opakovaní podľa tempa (~3 s/opak.).
       </p>
@@ -381,13 +385,13 @@
     <div class="card">
       <div class="section-title">Tréningy (presety)</div>
       <div id="presetList"></div>
-      <button class="btn ghost" id="addPresetBtn" style="margin-top:6px">➕ Nový tréning</button>
+      <button class="btn ghost" id="addPresetBtn" style="margin-top:6px">Nový tréning</button>
       <p style="font-size:11.5px;color:var(--muted);margin:12px 2px 0;line-height:1.5">
         Vytvor si zostavu cvikov (napr. Pull day). V Pridať si ju potom rýchlo zvolíš cez tlačidlo vpravo hore.
       </p>
     </div>
     <div class="card">
-      <div class="section-title">☁️ Cloud synchronizácia</div>
+      <div class="section-title">Cloud synchronizácia</div>
       <div class="field">
         <label>Supabase URL</label>
         <input type="text" id="syncUrl" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -400,10 +404,10 @@
         <label>Sync kód (rovnaký na všetkých zariadeniach)</label>
         <input type="text" id="syncCode" placeholder="napr. denis-2026" autocapitalize="off" autocorrect="off" spellcheck="false">
       </div>
-      <button class="btn" id="syncSaveBtn" style="margin-bottom:10px">🔗 Pripojiť & synchronizovať</button>
+      <button class="btn" id="syncSaveBtn" style="margin-bottom:10px">Pripojiť & synchronizovať</button>
       <div style="display:flex;gap:10px">
-        <button class="btn ghost" id="syncPullBtn" style="flex:1">⬇️ Z cloudu</button>
-        <button class="btn ghost" id="syncPushBtn" style="flex:1">⬆️ Do cloudu</button>
+        <button class="btn ghost" id="syncPullBtn" style="flex:1">Z cloudu</button>
+        <button class="btn ghost" id="syncPushBtn" style="flex:1">Do cloudu</button>
       </div>
       <div id="syncStatus" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
       <p style="font-size:11.5px;color:var(--muted);margin:10px 2px 0;line-height:1.5">
@@ -412,10 +416,10 @@
     </div>
     <div class="card">
       <div class="section-title">Dáta</div>
-      <button class="btn ghost" id="exportBtn" style="margin-bottom:10px">⬇️ Exportovať zálohu (JSON)</button>
-      <button class="btn ghost" id="importBtn" style="margin-bottom:10px">⬆️ Importovať zálohu</button>
+      <button class="btn ghost" id="exportBtn" style="margin-bottom:10px">Exportovať zálohu (JSON)</button>
+      <button class="btn ghost" id="importBtn" style="margin-bottom:10px">Importovať zálohu</button>
       <input type="file" id="importFile" accept="application/json" hidden>
-      <button class="btn danger" id="resetBtn">🗑️ Vymazať všetky dáta</button>
+      <button class="btn danger" id="resetBtn">Vymazať všetky dáta</button>
     </div>
     <div style="text-align:center;font-size:11px;color:var(--muted);padding:4px 0 2px">DoItNow · verzia <span id="appVer"></span></div>
   </section>
@@ -425,7 +429,7 @@
 <div class="modal-bd" id="exEditor">
   <div class="modal">
     <h3 id="exEditTitle">Upraviť cvik</h3>
-    <button class="btn ghost" id="exFromDb" style="margin-bottom:14px">📚 Vybrať z databázy cvikov</button>
+    <button class="btn ghost" id="exFromDb" style="margin-bottom:14px">Vybrať z databázy cvikov</button>
     <div style="display:flex;gap:10px;align-items:flex-end">
       <div class="field" style="width:88px">
         <label>Emoji</label>
@@ -457,7 +461,7 @@
     <button class="btn" id="exSave">Uložiť</button>
     <div style="display:flex;gap:10px;margin-top:10px">
       <button class="btn ghost" id="exCancel" style="flex:1">Zrušiť</button>
-      <button class="btn danger" id="exDelete" style="flex:1">🗑️ Zmazať</button>
+      <button class="btn danger" id="exDelete" style="flex:1">Zmazať</button>
     </div>
   </div>
 </div>
@@ -466,7 +470,7 @@
 <div class="modal-bd" id="dbPicker">
   <div class="modal">
     <h3>Databáza cvikov</h3>
-    <input type="text" id="dbSearch" placeholder="🔍 Hľadať cvik…" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <input type="text" id="dbSearch" placeholder="Hľadať cvik…" autocapitalize="off" autocorrect="off" spellcheck="false">
     <div id="dbList"></div>
   </div>
 </div>
@@ -478,11 +482,11 @@
     <div class="field"><label>Názov tréningu</label><input type="text" id="presetName" placeholder="napr. Pull day"></div>
     <div class="section-title">Cviky v tréningu</div>
     <div id="presetPick"></div>
-    <button class="btn ghost" id="presetFromDb" style="margin-top:4px">📚 Pridať z databázy</button>
+    <button class="btn ghost" id="presetFromDb" style="margin-top:4px">Pridať z databázy</button>
     <button class="btn" id="presetSave" style="margin-top:12px">Uložiť</button>
     <div style="display:flex;gap:10px;margin-top:10px">
       <button class="btn ghost" id="presetCancel" style="flex:1">Zrušiť</button>
-      <button class="btn danger" id="presetDelete" style="flex:1">🗑️ Zmazať</button>
+      <button class="btn danger" id="presetDelete" style="flex:1">Zmazať</button>
     </div>
   </div>
 </div>
@@ -509,9 +513,9 @@
 </div>
 
 <nav class="tabbar">
-  <button class="tab" data-view="friends"><span class="ico">👥</span>Priatelia</button>
-  <button class="tab center active" data-view="add"><span class="ico">➕</span>Pridať</button>
-  <button class="tab" data-view="profile"><span class="ico">👤</span>Profil</button>
+  <button class="tab" data-view="friends"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 19.5v-1.2a3.8 3.8 0 0 0-3.8-3.8h-5a3.8 3.8 0 0 0-3.8 3.8v1.2"/><circle cx="10.2" cy="7.3" r="3"/><path d="M21.5 19.5v-1.2a3.2 3.2 0 0 0-2.3-3.07"/><path d="M15.6 4.15a3 3 0 0 1 0 5.8"/></svg></span>Priatelia</button>
+  <button class="tab center active" data-view="add"><span class="ico">+</span>Pridať</button>
+  <button class="tab" data-view="profile"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg></span>Profil</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -522,7 +526,7 @@
     <div class="addfx-ring"></div>
     <div class="addfx-emoji" id="addFxEmoji">💪</div>
     <div class="addfx-big" id="addFxBig">+0</div>
-    <div class="addfx-kcal" id="addFxKcal">🔥 0 kcal</div>
+    <div class="addfx-kcal" id="addFxKcal">0 kcal</div>
     <div class="addfx-name" id="addFxName"></div>
   </div>
 </div>
@@ -536,94 +540,94 @@ const DEFAULT_EXERCISES = [];
 // Built-in exercise database the user can pick from (MET from the Compendium).
 // timed:true → counted in seconds (time mode) instead of repetitions.
 const EXERCISE_DB = [
-  // 🤸 Calisthenics – tlak
-  {name:"Kliky (push-ups)",emoji:"🤸",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Diamond push-ups",emoji:"💎",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Pike push-ups",emoji:"🔺",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Šikmé kliky (decline)",emoji:"📐",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Kliky na kolenách",emoji:"🧎",met:4.5,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Dipy (bradlá)",emoji:"💪",met:8.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Dipy na lavičke",emoji:"🪑",met:5.0,sec:3,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  {name:"Pseudo planche push-ups",emoji:"🤸",met:8.5,sec:4,perArm:false,timed:false,cat:"🤸 Calisthenics – tlak"},
-  // 🧗 Calisthenics – ťah
-  {name:"Zhyby nadhmatom",emoji:"🧗",met:8.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
-  {name:"Zhyby podhmatom",emoji:"🧗",met:8.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
-  {name:"Australské zhyby",emoji:"↔️",met:6.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
-  {name:"Muscle-up",emoji:"🆙",met:10.0,sec:4,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
-  {name:"Scapular pulls",emoji:"🔻",met:4.0,sec:3,perArm:false,timed:false,cat:"🧗 Calisthenics – ťah"},
-  {name:"Dead hang",emoji:"🪢",met:4.0,sec:1,perArm:false,timed:true,cat:"🧗 Calisthenics – ťah"},
-  // 🦵 Nohy
-  {name:"Drepy",emoji:"🦵",met:5.0,sec:3,perArm:false,timed:false,cat:"🦵 Nohy"},
-  {name:"Výpady",emoji:"🚶",met:5.0,sec:3,perArm:false,timed:false,cat:"🦵 Nohy"},
-  {name:"Bulharské drepy",emoji:"🦿",met:6.0,sec:3,perArm:true,timed:false,cat:"🦵 Nohy"},
-  {name:"Výskoky (jump squats)",emoji:"🦘",met:8.0,sec:2,perArm:false,timed:false,cat:"🦵 Nohy"},
-  {name:"Pistol squat",emoji:"🦩",met:8.0,sec:4,perArm:true,timed:false,cat:"🦵 Nohy"},
-  {name:"Step-ups",emoji:"🪜",met:5.0,sec:3,perArm:true,timed:false,cat:"🦵 Nohy"},
-  {name:"Lýtka (calf raises)",emoji:"🦶",met:4.0,sec:2,perArm:false,timed:false,cat:"🦵 Nohy"},
-  {name:"Glute bridge",emoji:"🌉",met:4.0,sec:3,perArm:false,timed:false,cat:"🦵 Nohy"},
-  {name:"Wall sit",emoji:"🧱",met:5.0,sec:1,perArm:false,timed:true,cat:"🦵 Nohy"},
-  {name:"Nordic hamstring curl",emoji:"🦵",met:6.0,sec:4,perArm:false,timed:false,cat:"🦵 Nohy"},
-  // 🧱 Core / brucho
-  {name:"Plank",emoji:"🧘",met:3.8,sec:1,perArm:false,timed:true,cat:"🧱 Core / brucho"},
-  {name:"Side plank",emoji:"🧘",met:3.8,sec:1,perArm:true,timed:true,cat:"🧱 Core / brucho"},
-  {name:"Sed-ľahy (sit-ups)",emoji:"🛌",met:4.5,sec:3,perArm:false,timed:false,cat:"🧱 Core / brucho"},
-  {name:"Crunches",emoji:"💥",met:3.8,sec:2,perArm:false,timed:false,cat:"🧱 Core / brucho"},
-  {name:"Leg raises",emoji:"🦵",met:4.0,sec:3,perArm:false,timed:false,cat:"🧱 Core / brucho"},
-  {name:"Hollow hold",emoji:"🥚",met:4.0,sec:1,perArm:false,timed:true,cat:"🧱 Core / brucho"},
-  {name:"Russian twists",emoji:"🔄",met:4.0,sec:2,perArm:true,timed:false,cat:"🧱 Core / brucho"},
-  {name:"Mountain climbers",emoji:"⛰️",met:8.0,sec:1,perArm:false,timed:false,cat:"🧱 Core / brucho"},
-  {name:"Bicycle crunches",emoji:"🚴",met:6.0,sec:2,perArm:false,timed:false,cat:"🧱 Core / brucho"},
-  // 🏋️ Kettlebell
-  {name:"KB swing",emoji:"🔔",met:9.8,sec:2,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"Goblet squat",emoji:"🏆",met:5.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB clean",emoji:"🔔",met:8.0,sec:2,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB clean & press",emoji:"🔔",met:8.0,sec:3,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB snatch",emoji:"⚡",met:9.0,sec:2,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"Turkish get-up",emoji:"🤺",met:5.0,sec:8,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB rad (row)",emoji:"🚣",met:6.0,sec:3,perArm:true,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB výpad",emoji:"🔔",met:6.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB deadlift",emoji:"🔔",met:6.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB halo",emoji:"😇",met:4.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
-  {name:"KB thruster",emoji:"🔔",met:8.0,sec:3,perArm:false,timed:false,cat:"🏋️ Kettlebell"},
-  // 💪 Posilka – horná
-  {name:"Bench press",emoji:"🛏️",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Incline bench",emoji:"📈",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Tlak nad hlavu (OHP)",emoji:"🆙",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Tlak s činkami",emoji:"🏋️",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Bicepsový zdvih",emoji:"💪",met:3.5,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Kladivá (hammer curl)",emoji:"🔨",met:3.5,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Triceps extension",emoji:"🔱",met:3.5,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Príťahy v predklone",emoji:"🚣",met:6.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Lat pulldown",emoji:"🔽",met:5.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Veslovanie (cable row)",emoji:"🚣",met:5.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Face pull",emoji:"😮",met:4.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  {name:"Upažovanie (lateral raise)",emoji:"🦅",met:4.0,sec:3,perArm:false,timed:false,cat:"💪 Posilka – horná"},
-  // 🦿 Posilka – dolná
-  {name:"Drep s činkou",emoji:"🏋️",met:6.0,sec:4,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
-  {name:"Mŕtvy ťah (deadlift)",emoji:"🏋️",met:6.0,sec:4,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
-  {name:"Leg press",emoji:"🦿",met:5.0,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
-  {name:"Rumunský mŕtvy ťah",emoji:"🏋️",met:6.0,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
-  {name:"Leg extension",emoji:"🦵",met:4.5,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
-  {name:"Leg curl",emoji:"🦵",met:4.5,sec:3,perArm:false,timed:false,cat:"🦿 Posilka – dolná"},
-  // 🎗️ Gumy
-  {name:"Biceps s gumou",emoji:"💪",met:3.5,sec:3,perArm:true,timed:false,cat:"🎗️ Gumy"},
-  {name:"Triceps s gumou",emoji:"🦾",met:3.5,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
-  {name:"Upažovanie s gumou",emoji:"🦅",met:4.0,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
-  {name:"Príťahy s gumou",emoji:"🚣",met:4.0,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
-  {name:"Drepy s gumou",emoji:"🦵",met:5.0,sec:3,perArm:false,timed:false,cat:"🎗️ Gumy"},
-  {name:"Band pull-apart",emoji:"↔️",met:3.5,sec:2,perArm:false,timed:false,cat:"🎗️ Gumy"},
-  // 🔥 HIIT / cardio
-  {name:"Burpees",emoji:"🔥",met:8.0,sec:3,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
-  {name:"Jumping jacks",emoji:"⭐",met:8.0,sec:1,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
-  {name:"High knees",emoji:"🏃",met:8.0,sec:1,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
-  {name:"Švihadlo",emoji:"🪢",met:11.0,sec:1,perArm:false,timed:true,cat:"🔥 HIIT / cardio"},
-  {name:"Box jumps",emoji:"📦",met:8.0,sec:2,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
-  {name:"Thrusters",emoji:"🚀",met:8.0,sec:3,perArm:false,timed:false,cat:"🔥 HIIT / cardio"},
-  {name:"Battle ropes",emoji:"🌊",met:9.0,sec:1,perArm:false,timed:true,cat:"🔥 HIIT / cardio"},
+  // Calisthenics – tlak
+  {name:"Kliky (push-ups)",emoji:"🤸",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Diamond push-ups",emoji:"💎",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Pike push-ups",emoji:"🔺",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Šikmé kliky (decline)",emoji:"📐",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Kliky na kolenách",emoji:"🧎",met:4.5,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Dipy (bradlá)",emoji:"💪",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Dipy na lavičke",emoji:"🪑",met:5.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  {name:"Pseudo planche push-ups",emoji:"🤸",met:8.5,sec:4,perArm:false,timed:false,cat:"Calisthenics – tlak"},
+  // Calisthenics – ťah
+  {name:"Zhyby nadhmatom",emoji:"🧗",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – ťah"},
+  {name:"Zhyby podhmatom",emoji:"🧗",met:8.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – ťah"},
+  {name:"Australské zhyby",emoji:"↔️",met:6.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – ťah"},
+  {name:"Muscle-up",emoji:"🆙",met:10.0,sec:4,perArm:false,timed:false,cat:"Calisthenics – ťah"},
+  {name:"Scapular pulls",emoji:"🔻",met:4.0,sec:3,perArm:false,timed:false,cat:"Calisthenics – ťah"},
+  {name:"Dead hang",emoji:"🪢",met:4.0,sec:1,perArm:false,timed:true,cat:"Calisthenics – ťah"},
+  // Nohy
+  {name:"Drepy",emoji:"🦵",met:5.0,sec:3,perArm:false,timed:false,cat:"Nohy"},
+  {name:"Výpady",emoji:"🚶",met:5.0,sec:3,perArm:false,timed:false,cat:"Nohy"},
+  {name:"Bulharské drepy",emoji:"🦿",met:6.0,sec:3,perArm:true,timed:false,cat:"Nohy"},
+  {name:"Výskoky (jump squats)",emoji:"🦘",met:8.0,sec:2,perArm:false,timed:false,cat:"Nohy"},
+  {name:"Pistol squat",emoji:"🦩",met:8.0,sec:4,perArm:true,timed:false,cat:"Nohy"},
+  {name:"Step-ups",emoji:"🪜",met:5.0,sec:3,perArm:true,timed:false,cat:"Nohy"},
+  {name:"Lýtka (calf raises)",emoji:"🦶",met:4.0,sec:2,perArm:false,timed:false,cat:"Nohy"},
+  {name:"Glute bridge",emoji:"🌉",met:4.0,sec:3,perArm:false,timed:false,cat:"Nohy"},
+  {name:"Wall sit",emoji:"🧱",met:5.0,sec:1,perArm:false,timed:true,cat:"Nohy"},
+  {name:"Nordic hamstring curl",emoji:"🦵",met:6.0,sec:4,perArm:false,timed:false,cat:"Nohy"},
+  // Core / brucho
+  {name:"Plank",emoji:"🧘",met:3.8,sec:1,perArm:false,timed:true,cat:"Core / brucho"},
+  {name:"Side plank",emoji:"🧘",met:3.8,sec:1,perArm:true,timed:true,cat:"Core / brucho"},
+  {name:"Sed-ľahy (sit-ups)",emoji:"🛌",met:4.5,sec:3,perArm:false,timed:false,cat:"Core / brucho"},
+  {name:"Crunches",emoji:"💥",met:3.8,sec:2,perArm:false,timed:false,cat:"Core / brucho"},
+  {name:"Leg raises",emoji:"🦵",met:4.0,sec:3,perArm:false,timed:false,cat:"Core / brucho"},
+  {name:"Hollow hold",emoji:"🥚",met:4.0,sec:1,perArm:false,timed:true,cat:"Core / brucho"},
+  {name:"Russian twists",emoji:"🔄",met:4.0,sec:2,perArm:true,timed:false,cat:"Core / brucho"},
+  {name:"Mountain climbers",emoji:"⛰️",met:8.0,sec:1,perArm:false,timed:false,cat:"Core / brucho"},
+  {name:"Bicycle crunches",emoji:"🚴",met:6.0,sec:2,perArm:false,timed:false,cat:"Core / brucho"},
+  // Kettlebell
+  {name:"KB swing",emoji:"🔔",met:9.8,sec:2,perArm:false,timed:false,cat:"Kettlebell"},
+  {name:"Goblet squat",emoji:"🏆",met:5.0,sec:3,perArm:false,timed:false,cat:"Kettlebell"},
+  {name:"KB clean",emoji:"🔔",met:8.0,sec:2,perArm:true,timed:false,cat:"Kettlebell"},
+  {name:"KB clean & press",emoji:"🔔",met:8.0,sec:3,perArm:true,timed:false,cat:"Kettlebell"},
+  {name:"KB snatch",emoji:"⚡",met:9.0,sec:2,perArm:true,timed:false,cat:"Kettlebell"},
+  {name:"Turkish get-up",emoji:"🤺",met:5.0,sec:8,perArm:true,timed:false,cat:"Kettlebell"},
+  {name:"KB rad (row)",emoji:"🚣",met:6.0,sec:3,perArm:true,timed:false,cat:"Kettlebell"},
+  {name:"KB výpad",emoji:"🔔",met:6.0,sec:3,perArm:false,timed:false,cat:"Kettlebell"},
+  {name:"KB deadlift",emoji:"🔔",met:6.0,sec:3,perArm:false,timed:false,cat:"Kettlebell"},
+  {name:"KB halo",emoji:"😇",met:4.0,sec:3,perArm:false,timed:false,cat:"Kettlebell"},
+  {name:"KB thruster",emoji:"🔔",met:8.0,sec:3,perArm:false,timed:false,cat:"Kettlebell"},
+  // Posilka – horná
+  {name:"Bench press",emoji:"🛏️",met:6.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Incline bench",emoji:"📈",met:6.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Tlak nad hlavu (OHP)",emoji:"🆙",met:6.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Tlak s činkami",emoji:"🏋️",met:6.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Bicepsový zdvih",emoji:"💪",met:3.5,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Kladivá (hammer curl)",emoji:"🔨",met:3.5,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Triceps extension",emoji:"🔱",met:3.5,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Príťahy v predklone",emoji:"🚣",met:6.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Lat pulldown",emoji:"🔽",met:5.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Veslovanie (cable row)",emoji:"🚣",met:5.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Face pull",emoji:"😮",met:4.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  {name:"Upažovanie (lateral raise)",emoji:"🦅",met:4.0,sec:3,perArm:false,timed:false,cat:"Posilka – horná"},
+  // Posilka – dolná
+  {name:"Drep s činkou",emoji:"🏋️",met:6.0,sec:4,perArm:false,timed:false,cat:"Posilka – dolná"},
+  {name:"Mŕtvy ťah (deadlift)",emoji:"🏋️",met:6.0,sec:4,perArm:false,timed:false,cat:"Posilka – dolná"},
+  {name:"Leg press",emoji:"🦿",met:5.0,sec:3,perArm:false,timed:false,cat:"Posilka – dolná"},
+  {name:"Rumunský mŕtvy ťah",emoji:"🏋️",met:6.0,sec:3,perArm:false,timed:false,cat:"Posilka – dolná"},
+  {name:"Leg extension",emoji:"🦵",met:4.5,sec:3,perArm:false,timed:false,cat:"Posilka – dolná"},
+  {name:"Leg curl",emoji:"🦵",met:4.5,sec:3,perArm:false,timed:false,cat:"Posilka – dolná"},
+  // Gumy
+  {name:"Biceps s gumou",emoji:"💪",met:3.5,sec:3,perArm:true,timed:false,cat:"Gumy"},
+  {name:"Triceps s gumou",emoji:"🦾",met:3.5,sec:3,perArm:false,timed:false,cat:"Gumy"},
+  {name:"Upažovanie s gumou",emoji:"🦅",met:4.0,sec:3,perArm:false,timed:false,cat:"Gumy"},
+  {name:"Príťahy s gumou",emoji:"🚣",met:4.0,sec:3,perArm:false,timed:false,cat:"Gumy"},
+  {name:"Drepy s gumou",emoji:"🦵",met:5.0,sec:3,perArm:false,timed:false,cat:"Gumy"},
+  {name:"Band pull-apart",emoji:"↔️",met:3.5,sec:2,perArm:false,timed:false,cat:"Gumy"},
+  // HIIT / cardio
+  {name:"Burpees",emoji:"🔥",met:8.0,sec:3,perArm:false,timed:false,cat:"HIIT / cardio"},
+  {name:"Jumping jacks",emoji:"⭐",met:8.0,sec:1,perArm:false,timed:false,cat:"HIIT / cardio"},
+  {name:"High knees",emoji:"🏃",met:8.0,sec:1,perArm:false,timed:false,cat:"HIIT / cardio"},
+  {name:"Švihadlo",emoji:"🪢",met:11.0,sec:1,perArm:false,timed:true,cat:"HIIT / cardio"},
+  {name:"Box jumps",emoji:"📦",met:8.0,sec:2,perArm:false,timed:false,cat:"HIIT / cardio"},
+  {name:"Thrusters",emoji:"🚀",met:8.0,sec:3,perArm:false,timed:false,cat:"HIIT / cardio"},
+  {name:"Battle ropes",emoji:"🌊",met:9.0,sec:1,perArm:false,timed:true,cat:"HIIT / cardio"},
 ];
 const STORE_KEY = "doitnow.v1";
 const REP_MIN = 1, REP_MAX = 300;
-const APP_VERSION = "2026-07-02.1";
+const APP_VERSION = "2026-07-04.1";
 
 /* ---------------- State ---------------- */
 let state = load();
@@ -749,7 +753,7 @@ function showAddFx(ex, val, kcal){
   const fx = $("#addFx"); if(!fx) return;
   $("#addFxEmoji").textContent = ex.emoji || "💪";
   $("#addFxBig").textContent = ex.timed ? ("+"+val+" s") : ("+"+val);
-  $("#addFxKcal").textContent = "🔥 "+fmt(kcal)+" kcal";
+  $("#addFxKcal").textContent = fmt(kcal)+" kcal";
   $("#addFxName").textContent = ex.name || "";
   fx.classList.remove("hide");
   fx.classList.remove("show"); void fx.offsetWidth; // restart animations
@@ -780,7 +784,7 @@ async function cloudPush(){
     });
     if(!res.ok) throw new Error("HTTP "+res.status);
     setSyncStatus("Uložené do cloudu ✓ "+new Date().toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"}));
-  }catch(e){ setSyncStatus("⚠️ Sync zlyhal: "+e.message); }
+  }catch(e){ setSyncStatus("Sync zlyhal: "+e.message); }
 }
 async function cloudPull(adoptAlways){
   if(!syncReady()) return;
@@ -805,7 +809,7 @@ async function cloudPull(adoptAlways){
     } else {
       await cloudPush(); // nothing in cloud yet
     }
-  }catch(e){ setSyncStatus("⚠️ Sync zlyhal: "+e.message); }
+  }catch(e){ setSyncStatus("Sync zlyhal: "+e.message); }
 }
 let _pushT;
 function scheduleCloudPush(){ if(!syncReady()) return; clearTimeout(_pushT); _pushT = setTimeout(()=>{ cloudPush(); publishFriend(); }, 1500); }
@@ -875,7 +879,7 @@ function activePresetName(){
   const p = state.presets.find(x=>x.id===state.activePreset);
   return p ? p.name : "Všetky";
 }
-function updatePresetBtn(){ const b = $("#presetBtn"); if(b) b.textContent = "🗂 "+activePresetName()+" ▾"; }
+function updatePresetBtn(){ const b = $("#presetBtn"); if(b) b.textContent = activePresetName()+" ▾"; }
 
 function renderDeck(){
   const deck = $("#deck");
@@ -892,16 +896,14 @@ function renderDeck(){
   if(!exList.length){
     deck.innerHTML = presetActive
       ? `<div class="page">
-          <div class="page-emoji">🗂</div>
           <div class="page-title">Prázdny tréning</div>
-          <div class="page-sub">Tento tréning nemá žiadne cviky. Uprav ho v ⚙️ Nastaveniach → Tréningy.</div>
+          <div class="page-sub">Tento tréning nemá žiadne cviky. Uprav ho v Nastaveniach → Tréningy.</div>
           <button class="btn ghost" id="emptyAllBtn" style="max-width:320px;margin-top:26px">Zobraziť všetky cviky</button>
         </div>`
       : `<div class="page">
-          <div class="page-emoji">🏋️</div>
           <div class="page-title">Začni vytvorením cviku</div>
           <div class="page-sub">Zatiaľ nemáš žiadne cviky. Vytvor si vlastné a môžeš začať trackovať.</div>
-          <button class="btn" id="emptyAddBtn" style="max-width:320px;margin-top:26px">➕ Vytvoriť prvý cvik</button>
+          <button class="btn" id="emptyAddBtn" style="max-width:320px;margin-top:26px">Vytvoriť prvý cvik</button>
         </div>`;
     const b = $("#emptyAddBtn"); if(b) b.addEventListener("click",()=>{ showView("set","profile"); openExEditor(null); });
     const ba = $("#emptyAllBtn"); if(ba) ba.addEventListener("click",()=>{ state.activePreset="all"; save(); renderDeck(); });
@@ -916,13 +918,13 @@ function renderDeck(){
     const control = ex.timed
       ? `<div class="numwrap"><div class="timer"><div class="timer-display">00:00</div></div></div>
          <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2" : ""}</div>
-         <button class="btn ghost manual-time" style="margin-bottom:8px">✍️ Zadať manuálne</button>
+         <button class="btn ghost manual-time" style="margin-bottom:8px">Zadať manuálne</button>
          <button class="btn ghost timer-toggle">▶ Štart</button>
-         <button class="btn add" style="margin-top:10px">Pridať set 💪</button>`
+         <button class="btn add" style="margin-top:10px">Pridať set</button>`
       : `<div class="numwrap"><div class="numruler"><div class="numval">10</div></div></div>
          <div class="stepper"><button class="step-btn sdec">−</button><button class="step-btn sinc">+</button></div>
          <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2 ruky" : ""}</div>
-         <button class="btn add">Pridať set 💪</button>`;
+         <button class="btn add">Pridať set</button>`;
     page.innerHTML = `
       <div class="page-eyebrow">${i+1} / ${total}</div>
       <div class="page-emoji">${ex.emoji}</div>
@@ -1080,7 +1082,7 @@ function renderStats(){
   // per-exercise breakdown
   const agg = {};
   logs.forEach(l=>{
-    const ex = exById(l.exId) || {id:l.exId, name:"(zmazaný)", emoji:"❓", perArm:false};
+    const ex = exById(l.exId) || {id:l.exId, name:"(zmazaný)", emoji:"?", perArm:false};
     if(!agg[l.exId]) agg[l.exId] = {ex, reps:0, kcal:0, sets:0};
     agg[l.exId].reps += repsOf(l);
     agg[l.exId].kcal += l.kcal; agg[l.exId].sets++;
@@ -1088,7 +1090,7 @@ function renderStats(){
   const rows = Object.values(agg).sort((a,b)=>b.kcal-a.kcal);
   const maxK = rows.reduce((m,a)=>Math.max(m,a.kcal),0) || 1;
   const box = $("#statsByEx");
-  if(!rows.length){ box.innerHTML = `<div class="empty"><span class="big">📊</span>Za toto obdobie žiadne tréningy.</div>`; return; }
+  if(!rows.length){ box.innerHTML = `<div class="empty">Za toto obdobie žiadne tréningy.</div>`; return; }
   box.innerHTML = "";
   const LIMIT = 5;
   const shown = statsExpanded ? rows : rows.slice(0, LIMIT);
@@ -1140,8 +1142,8 @@ async function renderFriends(){
   if(!friendsReady()){
     setup.style.display = ""; main.style.display = "none";
     $("#frGroup").value = (state.profile.group||"");
-    $("#frSetupNote").textContent = !syncReady() ? "⚠️ Najprv nastav Cloud synchronizáciu v ⚙️ Nastaveniach."
-      : (!state.profile.name ? "⚠️ Najprv si zadaj Meno v ⚙️ Nastaveniach." : "");
+    $("#frSetupNote").textContent = !syncReady() ? "Najprv nastav Cloud synchronizáciu v Nastaveniach."
+      : (!state.profile.name ? "Najprv si zadaj Meno v Nastaveniach." : "");
     return;
   }
   setup.style.display = "none"; main.style.display = "";
@@ -1153,27 +1155,30 @@ async function renderFriends(){
     const rows = await fetchFriends();
     checkWeeklyWin(rows);
     renderLeaderboard(rows);
-  }catch(e){ lb.innerHTML = `<div class="empty"><span class="big">⚠️</span>Nepodarilo sa načítať rebríček.<br>${e.message}</div>`; }
+  }catch(e){ lb.innerHTML = `<div class="empty">Nepodarilo sa načítať rebríček.<br>${e.message}</div>`; }
 }
 function renderLeaderboard(rows){
   const cur = weekKey(new Date());
   const val = r => frMode==="week" ? ((r.weeks && r.weeks[cur]) ? r.weeks[cur] : 0) : (r.total||0);
   rows = rows.slice().sort((a,b)=>val(b)-val(a));
   const lb = $("#leaderboard");
-  if(!rows.length){ lb.innerHTML = `<div class="empty"><span class="big">👥</span>Zatiaľ nikto. Pošli priateľom rovnaký skupinový kód.</div>`; return; }
-  const medals = ["🥇","🥈","🥉"];
+  if(!rows.length){ lb.innerHTML = `<div class="empty">Zatiaľ nikto. Pošli priateľom rovnaký skupinový kód.</div>`; return; }
   lb.innerHTML = "";
   rows.forEach((r,i)=>{
     const me = r.uid===state.userId;
-    const rank = medals[i] || (i+1)+".";
+    const rank = (i+1)+".";
     const m = r.medals || {g:r.wins||0,s:0,b:0};
-    const medStr = `${m.g?`🥇${m.g} `:""}${m.s?`🥈${m.s} `:""}${m.b?`🥉${m.b}`:""}`.trim();
+    const medParts = [];
+    if(m.g) medParts.push(`1.×${m.g}`);
+    if(m.s) medParts.push(`2.×${m.s}`);
+    if(m.b) medParts.push(`3.×${m.b}`);
+    const medStr = medParts.join(" ");
     const el = document.createElement("div");
-    el.className = "lb-row" + (me?" me":"");
+    el.className = "lb-row" + (me?" me":"") + (i<2?` top-${i+1}`:"");
     el.innerHTML = `<span class="lb-rank">${rank}</span>
       <div class="lb-info">
         <div class="lb-name">${r.name||"?"}${me?" (ty)":""}${medStr?`<span class="lb-wins">${medStr}</span>`:""}</div>
-        <div class="lb-sub">🔥 ${r.streak||0} dní v rade</div>
+        <div class="lb-sub">${r.streak||0} dní v rade</div>
       </div>
       <span class="lb-kcal">${fmt(val(r))} kcal</span>`;
     lb.appendChild(el);
@@ -1197,8 +1202,7 @@ function checkWeeklyWin(rows){
   if(rank<=3){
     state.profile.wins[lw] = rank; save();
     updateMyMedals();
-    const medal = rank===1?"🥇":rank===2?"🥈":"🥉";
-    toast(`${medal} ${rank}. miesto minulý týždeň!`);
+    toast(`${rank}. miesto minulý týždeň!`);
     publishFriend();
   }
 }
@@ -1207,11 +1211,11 @@ $$("#frTabs .rchip").forEach(c=>{
 });
 $("#frJoin").addEventListener("click",()=>{
   const group = $("#frGroup").value.trim();
-  if(!syncReady()){ toast("Najprv nastav Cloud sync (⚙️ Nastavenia)"); return; }
-  if(!state.profile.name){ toast("Najprv si zadaj Meno v ⚙️ Nastaveniach"); return; }
+  if(!syncReady()){ toast("Najprv nastav Cloud sync (Nastavenia)"); return; }
+  if(!state.profile.name){ toast("Najprv si zadaj Meno v Nastaveniach"); return; }
   if(!group){ toast("Zadaj skupinový kód"); return; }
   state.profile.group = group;
-  save(); toast("Pripojené 👥"); renderFriends();
+  save(); toast("Pripojené"); renderFriends();
 });
 $("#frEdit").addEventListener("click",()=>{
   $("#friendsMain").style.display = "none";
@@ -1270,17 +1274,17 @@ function renderDayDetail(key){
   const totK = logs.reduce((s,l)=>s+l.kcal,0);
   $("#daySub").textContent = logs.length ? `Spolu ${fmt(totK)} kcal · ${logs.length} setov` : "";
   const list = $("#dayList");
-  if(!logs.length){ list.innerHTML = `<div class="empty"><span class="big">😴</span>V tento deň žiadny tréning.</div>`; return; }
+  if(!logs.length){ list.innerHTML = `<div class="empty">V tento deň žiadny tréning.</div>`; return; }
   list.innerHTML = "";
   // newest first
   logs.slice().sort((a,b)=>b.ts.localeCompare(a.ts)).forEach(l=>{
-    const ex = exById(l.exId) || {name:"(zmazaný)",emoji:"❓",perArm:false};
+    const ex = exById(l.exId) || {name:"(zmazaný)",emoji:"?",perArm:false};
     const time = new Date(l.ts).toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"});
     const repTxt = ex.timed ? `${l.reps}s${ex.perArm?" / strana":""}` : (ex.perArm ? `${l.reps}× / ruka` : `${l.reps}× opak.`);
     const item = document.createElement("div");
     item.className = "log-item";
     item.innerHTML = `<span class="emoji">${ex.emoji}</span>
-      <div class="info"><div class="t">${ex.name}</div><div class="s">🕒 ${time} · ${repTxt}</div></div>
+      <div class="info"><div class="t">${ex.name}</div><div class="s">${time} · ${repTxt}</div></div>
       <span class="kcal">${fmt(l.kcal)} kcal</span>
       <button class="del" title="Zmazať set">✕</button>`;
     item.querySelector(".del").addEventListener("click",()=>{
@@ -1304,7 +1308,7 @@ function renderSettings(){
   const ml = $("#exList"); ml.innerHTML = "";
   const visibleEx = state.exercises.filter(e=>!e.deleted);
   if(!visibleEx.length){
-    ml.innerHTML = `<div class="empty"><span class="big">🏋️</span>Žiadne cviky. Pridaj prvý nižšie.</div>`;
+    ml.innerHTML = `<div class="empty">Žiadne cviky. Pridaj prvý nižšie.</div>`;
   }
   visibleEx.forEach(ex=>{
     const row = document.createElement("div");
@@ -1324,11 +1328,10 @@ function renderSettings(){
   // presets list
   const pl = $("#presetList"); if(pl){
     pl.innerHTML = "";
-    if(!state.presets.length){ pl.innerHTML = `<div class="empty" style="padding:14px 8px"><span class="big">🗂</span>Žiadne tréningy. Vytvor prvý nižšie.</div>`; }
+    if(!state.presets.length){ pl.innerHTML = `<div class="empty" style="padding:14px 8px">Žiadne tréningy. Vytvor prvý nižšie.</div>`; }
     state.presets.forEach(p=>{
       const row = document.createElement("div"); row.className = "exrow";
-      row.innerHTML = `<span class="emoji">🗂</span>
-        <div class="info"><div class="nm">${p.name}</div><div class="sub">${p.exIds.length} cvikov</div></div>
+      row.innerHTML = `<div class="info"><div class="nm">${p.name}</div><div class="sub">${p.exIds.length} cvikov</div></div>
         <span class="chev">›</span>`;
       row.addEventListener("click",()=>openPresetEditor(p.id));
       pl.appendChild(row);
@@ -1403,7 +1406,7 @@ $("#exSave").addEventListener("click",()=>{
     state.exercises.push({ id:"custom-"+Date.now().toString(36), name, emoji, met, secPerRep:sec, perArm, timed });
   }
   save(); closeExEditor(); renderSettings(); renderDeck(); buzz([10,40,10]);
-  toast("Uložené ✅");
+  toast("Uložené ✓");
 });
 
 /* exercise database picker */
@@ -1489,7 +1492,7 @@ $("#importFile").addEventListener("change",e=>{
       const s = JSON.parse(r.result);
       state = migrate(s); save();
       renderDeck(); renderSettings(); updateTodayPill();
-      toast("Záloha načítaná ✅");
+      toast("Záloha načítaná ✓");
     }catch(err){ toast("Chyba pri načítaní"); }
   };
   r.readAsText(file);
@@ -1539,7 +1542,7 @@ function openPresetEditor(id){
 }
 function renderPresetPick(){
   const box = $("#presetPick"); box.innerHTML = "";
-  if(!presetOrder.length){ box.innerHTML = `<div class="empty" style="padding:10px">Nemáš žiadne cviky. Pridaj cez „📚 Pridať z databázy".</div>`; return; }
+  if(!presetOrder.length){ box.innerHTML = `<div class="empty" style="padding:10px">Nemáš žiadne cviky. Pridaj cez „Pridať z databázy".</div>`; return; }
   presetOrder.forEach(id=>{
     const ex = exById(id); if(!ex) return;
     const on = presetSelSet.has(id);
@@ -1586,7 +1589,7 @@ $("#presetSave").addEventListener("click",()=>{
   } else {
     state.presets.push({ id:"preset-"+Date.now().toString(36), name, exIds });
   }
-  save(); closePresetEditor(); renderSettings(); renderDeck(); buzz([10,40,10]); toast("Tréning uložený ✅");
+  save(); closePresetEditor(); renderSettings(); renderDeck(); buzz([10,40,10]); toast("Tréning uložený ✓");
 });
 $("#presetDelete").addEventListener("click",()=>{
   if(!editingPreset) return;
@@ -1602,7 +1605,7 @@ function openPresetPicker(){
   const list = $("#presetPickerList"); list.innerHTML = "";
   const mk = (label,val)=>{
     const r = document.createElement("div"); r.className = "pickrow" + (state.activePreset===val?" sel":"");
-    r.innerHTML = `<span class="emoji">🗂</span><div class="nm">${label}</div><span class="tick">${state.activePreset===val?"✓":""}</span>`;
+    r.innerHTML = `<div class="nm">${label}</div><span class="tick">${state.activePreset===val?"✓":""}</span>`;
     r.addEventListener("click",()=>{ state.activePreset = val; save(); $("#presetPicker").classList.remove("show"); renderDeck(); });
     list.appendChild(r);
   };
