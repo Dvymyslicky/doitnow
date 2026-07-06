@@ -233,7 +233,20 @@
   .lb-name{font-weight:600;font-size:15px}
   .lb-wins{font-size:12px;color:var(--accent2);margin-left:6px}
   .lb-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .lb-status{font-size:12px;color:var(--accent2);margin-top:3px;font-style:italic}
+  .lb-crown{margin-left:4px}
   .lb-kcal{font-weight:800;color:var(--accent2);font-size:15px;white-space:nowrap}
+  .lb-poke{background:var(--card2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:12px;font-size:17px;cursor:pointer;flex:0 0 auto}
+  .lb-poke:active{background:var(--accent);color:var(--bg)}
+
+  .fp-chart{display:flex;align-items:flex-end;gap:6px;height:90px;padding:0 2px}
+  .fp-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+  .fp-bar i{display:block;width:100%;min-height:3px;background:var(--accent);border-radius:5px 5px 0 0}
+  .fp-bar span{font-size:9px;color:var(--muted)}
+
+  .poke-grid{display:flex;gap:10px;justify-content:center;padding:6px 0}
+  .poke-emoji{width:56px;height:56px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-size:26px;cursor:pointer}
+  .poke-emoji:active{background:var(--accent);transform:scale(.95)}
 
   /* Toast */
   .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:var(--accent);color:var(--bg);padding:12px 22px;border-radius:999px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:100;box-shadow:var(--shadow)}
@@ -286,10 +299,10 @@
     <div class="card profile-strip">
       <div class="ps-name" id="pfName">Tvoj profil</div>
       <div class="ps-stats">
-        <span class="ps-flame">Séria <b id="pfStreak">0</b></span>
-        <span class="ps-badge rank-g">1. <b id="pfG">0</b></span>
-        <span class="ps-badge">2. <b id="pfS">0</b></span>
-        <span class="ps-badge rank-b">3. <b id="pfB">0</b></span>
+        <span class="ps-flame">🔥 <b id="pfStreak">0</b></span>
+        <span class="ps-badge rank-g">🥇 <b id="pfG">0</b></span>
+        <span class="ps-badge">🥈 <b id="pfS">0</b></span>
+        <span class="ps-badge rank-b">🥉 <b id="pfB">0</b></span>
       </div>
     </div>
 
@@ -348,8 +361,8 @@
     </div>
     <div id="friendsMain" style="display:none">
       <div class="range-chips" id="frTabs">
-        <button class="rchip active" data-fr="total">Celkovo</button>
-        <button class="rchip" data-fr="week">Tento týždeň</button>
+        <button class="rchip active" data-fr="week">Tento týždeň</button>
+        <button class="rchip" data-fr="total">Celkovo</button>
       </div>
       <div id="leaderboard"></div>
       <button class="btn ghost" id="frEdit" style="margin-top:6px">Zmeniť skupinu</button>
@@ -368,6 +381,10 @@
       <div class="field">
         <label>Meno (zobrazí sa priateľom v rebríčku)</label>
         <input type="text" id="nameInput" placeholder="napr. Denis">
+      </div>
+      <div class="field">
+        <label>Odkaz priateľom (nepovinné, zobrazí sa v rebríčku)</label>
+        <input type="text" id="statusInput" maxlength="40" placeholder="napr. Dnes to bolelo 🔥">
       </div>
       <div class="field">
         <label>Telesná hmotnosť (kg)</label>
@@ -512,6 +529,41 @@
   </div>
 </div>
 
+<!-- Friend profile sheet -->
+<div class="modal-bd" id="friendProfile">
+  <div class="modal">
+    <h3 id="fpName">Meno</h3>
+    <div class="dt" id="fpStatus"></div>
+    <div class="ps-stats" style="margin-bottom:18px">
+      <span class="ps-flame">🔥 <b id="fpStreak">0</b></span>
+      <span class="ps-badge rank-g">🥇 <b id="fpG">0</b></span>
+      <span class="ps-badge">🥈 <b id="fpS">0</b></span>
+      <span class="ps-badge rank-b">🥉 <b id="fpB">0</b></span>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="big accent" id="fpTotal">0</div><div class="lbl">kcal spolu</div></div>
+    </div>
+    <div class="section-title" style="margin-top:18px">Posledné týždne</div>
+    <div class="fp-chart" id="fpChart"></div>
+    <button class="btn ghost" id="fpClose" style="margin-top:16px">Zavrieť</button>
+  </div>
+</div>
+
+<!-- Poke emoji picker -->
+<div class="modal-bd" id="pokePicker">
+  <div class="modal">
+    <h3>Štuchnúť <span id="pokeToName"></span></h3>
+    <div class="poke-grid" id="pokeGrid">
+      <button class="poke-emoji" data-e="🔥">🔥</button>
+      <button class="poke-emoji" data-e="💪">💪</button>
+      <button class="poke-emoji" data-e="😤">😤</button>
+      <button class="poke-emoji" data-e="👀">👀</button>
+      <button class="poke-emoji" data-e="🐌">🐌</button>
+    </div>
+    <button class="btn ghost" id="pokeCancel" style="margin-top:14px">Zrušiť</button>
+  </div>
+</div>
+
 <nav class="tabbar">
   <button class="tab" data-view="friends"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 19.5v-1.2a3.8 3.8 0 0 0-3.8-3.8h-5a3.8 3.8 0 0 0-3.8 3.8v1.2"/><circle cx="10.2" cy="7.3" r="3"/><path d="M21.5 19.5v-1.2a3.2 3.2 0 0 0-2.3-3.07"/><path d="M15.6 4.15a3 3 0 0 1 0 5.8"/></svg></span>Priatelia</button>
   <button class="tab center active" data-view="add"><span class="ico">+</span>Pridať</button>
@@ -637,7 +689,7 @@ function load(){
     if(raw){ const s = JSON.parse(raw); return migrate(s); }
   }catch(e){}
   return { weight:null, exercises:[], logs:[], lastReps:{}, updatedAt:0,
-           userId:newId(), profile:{ name:"", group:"", wins:{} }, presets:[], activePreset:"all" };
+           userId:newId(), profile:{ name:"", group:"", wins:{}, status:"" }, presets:[], activePreset:"all" };
 }
 function newId(){ return "u-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
 function migrate(s){
@@ -648,6 +700,7 @@ function migrate(s){
   s.userId = s.userId || newId();
   s.profile = s.profile || { name:"", group:"", wins:{} };
   s.profile.wins = s.profile.wins || {};
+  s.profile.status = s.profile.status || "";
   s.presets = Array.isArray(s.presets) ? s.presets : [];
   s.activePreset = s.activePreset || "all";
   // legacy: wins used to be {week:true} (gold only) -> convert to rank 1
@@ -709,6 +762,7 @@ function kcalFor(ex, val){
   return ex.met * w * hours;
 }
 function fmt(n){ return Math.round(n); }
+function escHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 // ISO week key, e.g. "2026-W23"
 function weekKey(dt){
@@ -837,9 +891,10 @@ async function publishFriend(){
     wins: mc.g,
     updated_at: new Date().toISOString()
   };
+  const extra = { medals: mc, today: Math.round(dayTotals(todayKey()).kcal), status: state.profile.status || "" };
   try{
-    let res = await postFriend([Object.assign({}, base, { medals: mc })]);
-    if(!res.ok){ await postFriend([base]); } // table may not have the `medals` column yet
+    let res = await postFriend([Object.assign({}, base, extra)]);
+    if(!res.ok){ await postFriend([base]); } // table may be missing the newer columns
   }catch(e){
     try{ await postFriend([base]); }catch(e2){}
   }
@@ -849,6 +904,31 @@ async function fetchFriends(){
   const res = await fetch(`${sync.url}/rest/v1/${FRIENDS_TABLE}?grp=eq.${encodeURIComponent(state.profile.group)}&select=*`, { headers: cloudHeaders() });
   if(!res.ok) throw new Error("HTTP "+res.status);
   return await res.json();
+}
+
+/* ---------------- Poke (quick emoji reactions) ---------------- */
+const POKES_TABLE = "doitnow_pokes";
+const POKE_SEEN_KEY = "doitnow.pokeSeen";
+async function sendPoke(toUid, emoji){
+  if(!friendsReady()) return;
+  try{
+    await fetch(`${sync.url}/rest/v1/${POKES_TABLE}`, {
+      method:"POST", headers: cloudHeaders(),
+      body: JSON.stringify([{ grp: state.profile.group, from_uid: state.userId, from_name: state.profile.name, to_uid: toUid, emoji }])
+    });
+  }catch(e){}
+}
+async function checkPokeInbox(){
+  if(!friendsReady()) return;
+  const since = localStorage.getItem(POKE_SEEN_KEY) || "1970-01-01T00:00:00.000Z";
+  const now = new Date().toISOString();
+  try{
+    const res = await fetch(`${sync.url}/rest/v1/${POKES_TABLE}?grp=eq.${encodeURIComponent(state.profile.group)}&to_uid=eq.${encodeURIComponent(state.userId)}&created_at=gt.${encodeURIComponent(since)}&order=created_at.asc&select=*`, { headers: cloudHeaders() });
+    if(!res.ok) return;
+    const pokes = await res.json();
+    localStorage.setItem(POKE_SEEN_KEY, now);
+    pokes.forEach((p,i)=>{ setTimeout(()=>toast(`${p.from_name||"Niekto"} ťa štuchol ${p.emoji}`), i*1800); });
+  }catch(e){}
 }
 
 function refreshAll(){
@@ -1136,7 +1216,8 @@ function renderProfile(){
 }
 
 /* ---------------- FRIENDS view ---------------- */
-let frMode = "total";   // default: accumulating total (weekly reset comes later)
+let frMode = "week";   // default: current-week kcal (resets every ISO week); "total" = all-time
+let lastFriendRows = [];
 async function renderFriends(){
   const setup = $("#friendsSetup"), main = $("#friendsMain");
   if(!friendsReady()){
@@ -1155,14 +1236,17 @@ async function renderFriends(){
     const rows = await fetchFriends();
     checkWeeklyWin(rows);
     renderLeaderboard(rows);
+    checkPokeInbox();
   }catch(e){ lb.innerHTML = `<div class="empty">Nepodarilo sa načítať rebríček.<br>${e.message}</div>`; }
 }
 function renderLeaderboard(rows){
   const cur = weekKey(new Date());
   const val = r => frMode==="week" ? ((r.weeks && r.weeks[cur]) ? r.weeks[cur] : 0) : (r.total||0);
   rows = rows.slice().sort((a,b)=>val(b)-val(a));
+  lastFriendRows = rows;
   const lb = $("#leaderboard");
   if(!rows.length){ lb.innerHTML = `<div class="empty">Zatiaľ nikto. Pošli priateľom rovnaký skupinový kód.</div>`; return; }
+  const king = rows.reduce((best,r)=> (r.today>0 && r.today>(best?best.today:0)) ? r : best, null);
   lb.innerHTML = "";
   rows.forEach((r,i)=>{
     const me = r.uid===state.userId;
@@ -1173,16 +1257,35 @@ function renderLeaderboard(rows){
     if(m.s) medParts.push(`2.×${m.s}`);
     if(m.b) medParts.push(`3.×${m.b}`);
     const medStr = medParts.join(" ");
+    const crown = (king && r.uid===king.uid) ? `<span class="lb-crown" title="Kráľ dňa">👑</span>` : "";
     const el = document.createElement("div");
     el.className = "lb-row" + (me?" me":"") + (i<2?` top-${i+1}`:"");
     el.innerHTML = `<span class="lb-rank">${rank}</span>
-      <div class="lb-info">
-        <div class="lb-name">${r.name||"?"}${me?" (ty)":""}${medStr?`<span class="lb-wins">${medStr}</span>`:""}</div>
+      <div class="lb-info" data-uid="${escHtml(r.uid)}">
+        <div class="lb-name">${escHtml(r.name||"?")}${me?" (ty)":""}${crown}${medStr?`<span class="lb-wins">${medStr}</span>`:""}</div>
         <div class="lb-sub">${r.streak||0} dní v rade</div>
+        ${r.status?`<div class="lb-status">„${escHtml(r.status)}"</div>`:""}
       </div>
-      <span class="lb-kcal">${fmt(val(r))} kcal</span>`;
+      <span class="lb-kcal">${fmt(val(r))} kcal</span>
+      ${!me?`<button class="lb-poke" data-uid="${escHtml(r.uid)}" data-name="${escHtml(r.name||"?")}" title="Štuchnúť">👉</button>`:""}`;
     lb.appendChild(el);
   });
+  checkOvertake(rows);
+}
+// local-only: toast when a friend newly ranks above me (not synced, just a fun nudge)
+function checkOvertake(sortedRows){
+  const myIdx = sortedRows.findIndex(r=>r.uid===state.userId);
+  if(myIdx<0) return;
+  const key = `doitnow.frAhead.${state.profile.group}.${frMode}`;
+  const isFirst = localStorage.getItem(key)===null;
+  let prevAhead;
+  try{ prevAhead = new Set(JSON.parse(localStorage.getItem(key)||"[]")); }catch(e){ prevAhead = new Set(); }
+  const nowAhead = sortedRows.slice(0, myIdx);
+  if(!isFirst){
+    let bump = 0;
+    nowAhead.forEach(r=>{ if(!prevAhead.has(r.uid)){ const n=r.name||"Niekto"; setTimeout(()=>toast(`${n} ťa predbehol!`), bump*1700); bump++; } });
+  }
+  localStorage.setItem(key, JSON.stringify(nowAhead.map(r=>r.uid)));
 }
 function updateMyMedals(){
   const mc = medalCounts();
@@ -1222,6 +1325,54 @@ $("#frEdit").addEventListener("click",()=>{
   $("#friendsSetup").style.display = "";
   $("#frGroup").value = state.profile.group || "";
 });
+
+/* ---------------- Friend profile sheet ---------------- */
+function openFriendProfile(uid){
+  const r = lastFriendRows.find(x=>x.uid===uid);
+  if(!r) return;
+  $("#fpName").textContent = r.name || "?";
+  $("#fpStatus").textContent = r.status ? `„${r.status}"` : "";
+  $("#fpStreak").textContent = r.streak || 0;
+  const m = r.medals || {g:r.wins||0,s:0,b:0};
+  $("#fpG").textContent = m.g||0; $("#fpG").parentElement.style.display = m.g ? "" : "none";
+  $("#fpS").textContent = m.s||0; $("#fpS").parentElement.style.display = m.s ? "" : "none";
+  $("#fpB").textContent = m.b||0; $("#fpB").parentElement.style.display = m.b ? "" : "none";
+  $("#fpTotal").textContent = fmt(r.total||0);
+  const weeks = r.weeks || {};
+  const keys = Object.keys(weeks).sort().slice(-8);
+  const max = Math.max(1, ...keys.map(k=>weeks[k]));
+  $("#fpChart").innerHTML = keys.length ? keys.map(k=>{
+    const v = weeks[k]||0;
+    const h = Math.max(4, Math.round((v/max)*100));
+    return `<div class="fp-bar"><i style="height:${h}%"></i><span>${fmt(v)}</span></div>`;
+  }).join("") : `<div class="empty">Zatiaľ žiadne dáta</div>`;
+  $("#friendProfile").classList.add("show");
+}
+$("#leaderboard").addEventListener("click",e=>{
+  const poke = e.target.closest(".lb-poke");
+  if(poke){ openPokePicker(poke.dataset.uid, poke.dataset.name); return; }
+  const info = e.target.closest(".lb-info");
+  if(info) openFriendProfile(info.dataset.uid);
+});
+$("#fpClose").addEventListener("click",()=>$("#friendProfile").classList.remove("show"));
+$("#friendProfile").addEventListener("click",e=>{ if(e.target.id==="friendProfile") $("#friendProfile").classList.remove("show"); });
+
+/* ---------------- Poke picker sheet ---------------- */
+let pokeTarget = null;
+function openPokePicker(uid, name){
+  pokeTarget = uid;
+  $("#pokeToName").textContent = name || "";
+  $("#pokePicker").classList.add("show");
+}
+function closePokePicker(){ $("#pokePicker").classList.remove("show"); pokeTarget = null; }
+$("#pokeGrid").addEventListener("click",e=>{
+  const b = e.target.closest(".poke-emoji"); if(!b || !pokeTarget) return;
+  sendPoke(pokeTarget, b.dataset.e);
+  closePokePicker();
+  toast("Poslané!");
+});
+$("#pokeCancel").addEventListener("click",closePokePicker);
+$("#pokePicker").addEventListener("click",e=>{ if(e.target.id==="pokePicker") closePokePicker(); });
 
 /* ---------------- CALENDAR view ---------------- */
 let calRef = new Date(); calRef.setDate(1);
@@ -1300,6 +1451,7 @@ function renderDayDetail(key){
 /* ---------------- SETTINGS view ---------------- */
 function renderSettings(){
   $("#nameInput").value = (state.profile && state.profile.name) || "";
+  $("#statusInput").value = (state.profile && state.profile.status) || "";
   $("#weightInput").value = state.weight || "";
   $("#syncUrl").value = sync.url || "";
   $("#syncKey").value = sync.key || "";
@@ -1471,6 +1623,10 @@ $("#exDelete").addEventListener("click",()=>{
 $("#nameInput").addEventListener("change",e=>{
   state.profile.name = e.target.value.trim();
   save(); publishFriend(); toast("Meno uložené");
+});
+$("#statusInput").addEventListener("change",e=>{
+  state.profile.status = e.target.value.trim();
+  save(); publishFriend(); toast("Odkaz uložený");
 });
 $("#weightInput").addEventListener("change",e=>{
   const v = parseFloat(e.target.value);
