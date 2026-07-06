@@ -895,12 +895,16 @@ async function publishFriend(){
     wins: mc.g,
     updated_at: new Date().toISOString()
   };
-  const extra = { medals: mc, today: Math.round(dayTotals(todayKey()).kcal), status: state.profile.status || "", today_logs: todayExerciseSummary() };
-  try{
-    let res = await postFriend([Object.assign({}, base, extra)]);
-    if(!res.ok){ await postFriend([base]); } // table may be missing the newer columns
-  }catch(e){
-    try{ await postFriend([base]); }catch(e2){}
+  const extra = { medals: mc, today: Math.round(dayTotals(todayKey()).kcal), status: state.profile.status || "" };
+  const withLogs = Object.assign({}, base, extra, { today_logs: todayExerciseSummary() });
+  const withoutLogs = Object.assign({}, base, extra);
+  // try newest columns first, then fall back one layer at a time so an older/newer
+  // migration that hasn't been run yet doesn't silently drop fields that already work
+  for(const payload of [withLogs, withoutLogs, base]){
+    try{
+      const res = await postFriend([payload]);
+      if(res.ok) return;
+    }catch(e){}
   }
 }
 async function fetchFriends(){
