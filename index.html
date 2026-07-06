@@ -535,6 +535,9 @@
   <div class="modal">
     <h3 id="fpName">Meno</h3>
     <div class="dt" id="fpStatus"></div>
+    <div class="section-title" style="margin-top:4px">Dnes</div>
+    <div id="fpToday"></div>
+    <div class="section-title" style="margin-top:18px">Séria a medaily</div>
     <div class="ps-stats" style="margin-bottom:18px">
       <span class="ps-flame">🔥 <b id="fpStreak">0</b></span>
       <span class="ps-badge rank-g">🥇 <b id="fpG">0</b></span>
@@ -892,7 +895,7 @@ async function publishFriend(){
     wins: mc.g,
     updated_at: new Date().toISOString()
   };
-  const extra = { medals: mc, today: Math.round(dayTotals(todayKey()).kcal), status: state.profile.status || "" };
+  const extra = { medals: mc, today: Math.round(dayTotals(todayKey()).kcal), status: state.profile.status || "", today_logs: todayExerciseSummary() };
   try{
     let res = await postFriend([Object.assign({}, base, extra)]);
     if(!res.ok){ await postFriend([base]); } // table may be missing the newer columns
@@ -1124,6 +1127,13 @@ function makeRuler(ruler, valEl, ex, lkEl){
 /* ---------------- Shared log helpers ---------------- */
 function logsForDay(key){ return state.logs.filter(l=>l.ts.slice(0,10)===key).sort((a,b)=>b.ts.localeCompare(a.ts)); }
 function repsOf(l){ const e=exById(l.exId); return e&&e.perArm ? l.reps*2 : l.reps; }
+// flatten today's sets into plain data (no exId) so friends without this exercise can still read it
+function todayExerciseSummary(){
+  return logsForDay(todayKey()).map(l=>{
+    const ex = exById(l.exId) || {};
+    return { name: ex.name||"?", emoji: ex.emoji||"🏋️", timed: !!ex.timed, perArm: !!ex.perArm, val: l.reps, kcal: Math.round(l.kcal), ts: l.ts };
+  });
+}
 function updateTodayPill(){
   const el = $("#todayKcalPill");
   if(el) el.textContent = fmt(logsForDay(todayKey()).reduce((s,l)=>s+l.kcal,0));
@@ -1333,6 +1343,14 @@ function openFriendProfile(uid){
   if(!r) return;
   $("#fpName").textContent = r.name || "?";
   $("#fpStatus").textContent = r.status ? `„${r.status}"` : "";
+  const todayLogs = r.today_logs || [];
+  $("#fpToday").innerHTML = todayLogs.length ? todayLogs.map(l=>{
+    const time = l.ts ? new Date(l.ts).toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"}) : "";
+    const repTxt = l.timed ? `${l.val}s${l.perArm?" / strana":""}` : (l.perArm ? `${l.val}× / ruka` : `${l.val}× opak.`);
+    return `<div class="log-item"><span class="emoji">${escHtml(l.emoji||"🏋️")}</span>
+      <div class="info"><div class="t">${escHtml(l.name||"?")}</div><div class="s">${time} · ${repTxt}</div></div>
+      <span class="kcal">${fmt(l.kcal||0)} kcal</span></div>`;
+  }).join("") : `<div class="empty">Dnes ešte nič.</div>`;
   $("#fpStreak").textContent = r.streak || 0;
   const m = r.medals || {g:r.wins||0,s:0,b:0};
   $("#fpG").textContent = m.g||0; $("#fpG").parentElement.style.display = m.g ? "" : "none";
