@@ -895,12 +895,18 @@ async function publishFriend(){
     wins: mc.g,
     updated_at: new Date().toISOString()
   };
-  const extra = { medals: mc, today: Math.round(dayTotals(todayKey()).kcal), status: state.profile.status || "" };
-  const withLogs = Object.assign({}, base, extra, { today_logs: todayExerciseSummary() });
-  const withoutLogs = Object.assign({}, base, extra);
-  // try newest columns first, then fall back one layer at a time so an older/newer
-  // migration that hasn't been run yet doesn't silently drop fields that already work
-  for(const payload of [withLogs, withoutLogs, base]){
+  // each optional column may not exist yet on a given Supabase project (staged migrations) -
+  // drop them one at a time (newest first) instead of all-or-nothing, so a single missing
+  // column doesn't silently take down fields that already migrated fine
+  const optional = [
+    ["today_logs", todayExerciseSummary()],
+    ["medals", mc],
+    ["today", Math.round(dayTotals(todayKey()).kcal)],
+    ["status", state.profile.status || ""]
+  ];
+  for(let drop=0; drop<=optional.length; drop++){
+    const payload = Object.assign({}, base);
+    optional.slice(drop).forEach(([k,v])=>{ payload[k] = v; });
     try{
       const res = await postFriend([payload]);
       if(res.ok) return;
