@@ -232,7 +232,7 @@
   .lb-row.top-2 .lb-rank{color:var(--txt)}
   .lb-info{flex:1;min-width:0}
   .lb-name{font-weight:600;font-size:15px}
-  .lb-wins{font-size:12px;color:var(--accent2);margin-left:6px}
+  .lb-wins{font-size:12px;color:var(--accent2);margin-left:6px;filter:grayscale(1) contrast(1.05) brightness(1.1)}
   .lb-sub{font-size:12px;color:var(--muted);margin-top:2px}
   .lb-status{font-size:12px;color:var(--accent2);margin-top:3px;font-style:italic}
   .lb-crown{margin-left:4px;filter:grayscale(1) contrast(1.05) brightness(1.1)}
@@ -1254,9 +1254,9 @@ function renderLeaderboard(rows){
     const rank = (i+1)+".";
     const m = r.medals || {g:r.wins||0,s:0,b:0};
     const medParts = [];
-    if(m.g) medParts.push(`1.×${m.g}`);
-    if(m.s) medParts.push(`2.×${m.s}`);
-    if(m.b) medParts.push(`3.×${m.b}`);
+    if(m.g) medParts.push(`🥇×${m.g}`);
+    if(m.s) medParts.push(`🥈×${m.s}`);
+    if(m.b) medParts.push(`🥉×${m.b}`);
     const medStr = medParts.join(" ");
     const crown = (king && r.uid===king.uid) ? `<span class="lb-crown" title="Kráľ dňa">👑</span>` : "";
     const el = document.createElement("div");
