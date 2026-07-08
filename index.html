@@ -101,7 +101,7 @@
   .step-btn:active{background:var(--accent);color:var(--bg);transform:scale(.9)}
   /* stopwatch (timed exercises) */
   .timer{display:flex;align-items:center;justify-content:center;width:100%;min-height:200px}
-  .timer-display{font-size:104px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);line-height:1}
+  .timer-display{font-size:104px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent2);line-height:1;cursor:pointer}
   .timer-toggle{max-width:380px;margin:0 auto}
   .btn.stop{background:var(--txt);color:var(--bg)}
 
@@ -517,12 +517,12 @@
   </div>
 </div>
 
-<!-- Manual time entry (timed exercises) -->
+<!-- Manual entry sheet (reps or seconds - opened by tapping the big number) -->
 <div class="modal-bd" id="manualTimeEditor">
   <div class="modal">
-    <h3>Zadať čas manuálne</h3>
+    <h3 id="manualEditTitle">Zadať manuálne</h3>
     <div class="field">
-      <label>Počet sekúnd</label>
+      <label id="manualEditLabel">Počet</label>
       <input type="number" id="manualTimeInput" inputmode="numeric" min="0" step="1" placeholder="napr. 45">
     </div>
     <button class="btn" id="manualTimeSave">Uložiť</button>
@@ -1012,7 +1012,6 @@ function renderDeck(){
     const control = ex.timed
       ? `<div class="numwrap"><div class="timer"><div class="timer-display">00:00</div></div></div>
          <div class="kcal-live">≈ <b class="lk">0</b> kcal${ex.perArm ? " · ×2" : ""}</div>
-         <button class="btn ghost manual-time" style="margin-bottom:8px">Zadať manuálne</button>
          <button class="btn ghost timer-toggle">▶ Štart</button>
          <button class="btn add" style="margin-top:10px">Pridať set</button>`
       : `<div class="numwrap"><div class="numruler"><div class="numval">10</div></div></div>
@@ -1037,7 +1036,9 @@ function renderDeck(){
       tapStep(page.querySelector(".sdec"), -1);
       tapStep(page.querySelector(".sinc"), 1);
     } else {
-      page.querySelector(".manual-time").addEventListener("click",()=>openManualTimeEditor(ctrl));
+      page.querySelector(".timer-display").addEventListener("click",()=>{
+        openManualEditor(ctrl.setManual, { title:"Zadať čas manuálne", label:"Počet sekúnd", placeholder:"napr. 45", value: ctrl.value() });
+      });
     }
 
     page.querySelector(".add").addEventListener("click",()=>{
@@ -1073,22 +1074,25 @@ function makeTimer(displayEl, toggleBtn, lkEl, ex){
   return { value:()=>Math.max(0,Math.round(cur())), afterAdd:reset, reposition:()=>{}, setManual };
 }
 
-/* ---------- Manual time entry (timed exercises) ---------- */
-let manualTimeCtrl = null;
-function openManualTimeEditor(ctrl){
-  manualTimeCtrl = ctrl;
-  $("#manualTimeInput").value = "";
+/* ---------- Manual entry sheet (shared: reps or seconds, opened by tapping the big number) ---------- */
+let manualEditApply = null;
+function openManualEditor(applyFn, opts){
+  manualEditApply = applyFn;
+  $("#manualEditTitle").textContent = opts.title;
+  $("#manualEditLabel").textContent = opts.label;
+  $("#manualTimeInput").placeholder = opts.placeholder || "";
+  $("#manualTimeInput").value = opts.value != null ? opts.value : "";
   $("#manualTimeEditor").classList.add("show");
-  setTimeout(()=>$("#manualTimeInput").focus(), 50);
+  setTimeout(()=>{ $("#manualTimeInput").focus(); $("#manualTimeInput").select(); }, 50);
 }
-function closeManualTimeEditor(){ $("#manualTimeEditor").classList.remove("show"); manualTimeCtrl = null; }
+function closeManualEditor(){ $("#manualTimeEditor").classList.remove("show"); manualEditApply = null; }
 $("#manualTimeSave").addEventListener("click",()=>{
   const v = Math.max(0, Math.round(Number($("#manualTimeInput").value) || 0));
-  if(manualTimeCtrl) manualTimeCtrl.setManual(v);
-  closeManualTimeEditor();
+  if(manualEditApply) manualEditApply(v);
+  closeManualEditor();
 });
-$("#manualTimeCancel").addEventListener("click", closeManualTimeEditor);
-$("#manualTimeEditor").addEventListener("click", e=>{ if(e.target.id==="manualTimeEditor") closeManualTimeEditor(); });
+$("#manualTimeCancel").addEventListener("click", closeManualEditor);
+$("#manualTimeEditor").addEventListener("click", e=>{ if(e.target.id==="manualTimeEditor") closeManualEditor(); });
 $("#manualTimeInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#manualTimeSave").click(); });
 
 // Single big number bound to one exercise. Drag to scrub smoothly.
@@ -1103,16 +1107,17 @@ function makeRuler(ruler, valEl, ex, lkEl){
   }
   valEl.textContent = value; lkEl.textContent = fmt(kcalFor(ex, value));
 
-  let dragging=false, startX=0, startVal=value;
+  let dragging=false, startX=0, startVal=value, moved=false;
   const px = e => e.touches ? e.touches[0].clientX : e.clientX;
   const deckEl = () => document.getElementById("deck");
   function freezeDeck(){ const d=deckEl(); if(d) d.style.overflowY="hidden"; }  // stop any momentum scroll instantly
   function unfreezeDeck(){ const d=deckEl(); if(d) d.style.overflowY="auto"; }
-  function down(e){ dragging=true; startX=px(e); startVal=value; valEl.style.transition="none"; freezeDeck(); }
+  function down(e){ dragging=true; moved=false; startX=px(e); startVal=value; valEl.style.transition="none"; freezeDeck(); }
   function move(e){
     if(!dragging) return;
     e.preventDefault();
     const dx = px(e) - startX;
+    if(Math.abs(dx) > 6) moved = true;
     const steps = Math.round(dx/STEP);
     const v = clamp(startVal - steps);          // reversed direction
     let rem = dx - steps*STEP;                   // fluid nudge with the finger
@@ -1120,7 +1125,15 @@ function makeRuler(ruler, valEl, ex, lkEl){
     valEl.style.transform = "translateX(" + rem + "px)";
     if(v !== value){ value=v; valEl.textContent=v; lkEl.textContent=fmt(kcalFor(ex,v)); buzz(7); }
   }
-  function up(){ unfreezeDeck(); if(!dragging) return; dragging=false; valEl.style.transition="transform .18s cubic-bezier(.2,1,.3,1)"; valEl.style.transform="translateX(0)"; }
+  function openEdit(){
+    openManualEditor(setVal, { title:"Zadať manuálne", label: ex.perArm ? "Počet (na jednu stranu)" : "Počet opakovaní", placeholder:"napr. 15", value });
+  }
+  function up(){
+    unfreezeDeck(); if(!dragging) return; dragging=false;
+    valEl.style.transition="transform .18s cubic-bezier(.2,1,.3,1)"; valEl.style.transform="translateX(0)";
+    if(!moved) openEdit();   // plain tap (no drag) -> manual entry
+  }
+  function cancelDrag(){ unfreezeDeck(); dragging=false; valEl.style.transition="transform .18s cubic-bezier(.2,1,.3,1)"; valEl.style.transform="translateX(0)"; }
 
   ruler.addEventListener("mousedown",down);
   window.addEventListener("mousemove",move);
@@ -1128,7 +1141,7 @@ function makeRuler(ruler, valEl, ex, lkEl){
   ruler.addEventListener("touchstart",down,{passive:false});
   ruler.addEventListener("touchmove",move,{passive:false});
   ruler.addEventListener("touchend",up);
-  ruler.addEventListener("touchcancel",up);
+  ruler.addEventListener("touchcancel",cancelDrag);
   ruler.addEventListener("wheel",e=>{ e.preventDefault(); setVal(value+(e.deltaY>0?-1:1)); },{passive:false});
 
   return { value:()=>value, step:d=>setVal(value+d), reposition:()=>{} };
