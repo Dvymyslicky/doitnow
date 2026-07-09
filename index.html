@@ -1710,7 +1710,11 @@ $("#syncSaveBtn").addEventListener("click",()=>{
   if(!url || !key || !code){ toast("Vyplň URL, key aj kód"); return; }
   sync = { url, key, code }; saveSyncCfg();
   toast("Pripájam k cloudu…");
-  cloudPull(); // merge: novšia verzia (lokál/cloud) vyhrá
+  // a device with no real local data yet (fresh install, or one where you just typed your
+  // name/weight before connecting) must never let its empty-but-just-touched state win a
+  // timestamp race against real cloud history - always adopt the cloud copy in that case
+  const hasLocalContent = state.logs.length>0 || state.exercises.length>0;
+  cloudPull(!hasLocalContent);
 });
 $("#syncPullBtn").addEventListener("click",()=>{
   if(!syncReady()){ toast("Najprv sa pripoj"); return; }
