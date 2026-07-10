@@ -903,6 +903,7 @@ async function publishFriend(){
   // drop them one at a time (newest first) instead of all-or-nothing, so a single missing
   // column doesn't silently take down fields that already migrated fine
   const optional = [
+    ["today_date", todayKey()],
     ["today_logs", todayExerciseSummary()],
     ["medals", mc],
     ["today", Math.round(dayTotals(todayKey()).kcal)],
@@ -1284,7 +1285,10 @@ function renderLeaderboard(rows){
   lastFriendRows = rows;
   const lb = $("#leaderboard");
   if(!rows.length){ lb.innerHTML = `<div class="empty">Zatiaľ nikto. Pošli priateľom rovnaký skupinový kód.</div>`; return; }
-  const king = rows.reduce((best,r)=> (r.today>0 && r.today>(best?best.today:0)) ? r : best, null);
+  const curDay = todayKey();
+  // ignore today/today_logs from a row that hasn't actually published since it became "today" for them
+  const isFresh = r => r.today_date === curDay;
+  const king = rows.reduce((best,r)=> (isFresh(r) && r.today>0 && r.today>(best?best.today:0)) ? r : best, null);
   lb.innerHTML = "";
   rows.forEach((r,i)=>{
     const me = r.uid===state.userId;
@@ -1370,7 +1374,7 @@ function openFriendProfile(uid){
   if(!r) return;
   $("#fpName").textContent = r.name || "?";
   $("#fpStatus").textContent = r.status ? `„${r.status}"` : "";
-  const todayLogs = r.today_logs || [];
+  const todayLogs = (r.today_date === todayKey()) ? (r.today_logs || []) : [];
   $("#fpToday").innerHTML = todayLogs.length ? todayLogs.map(l=>{
     const time = l.ts ? new Date(l.ts).toLocaleTimeString("sk-SK",{hour:"2-digit",minute:"2-digit"}) : "";
     const repTxt = l.timed ? `${l.val}s${l.perArm?" / strana":""}` : (l.perArm ? `${l.val}× / ruka` : `${l.val}× opak.`);
